@@ -116,37 +116,37 @@ const data: HomePageProps = {
       },
       projects: [
         {
-          id: "color1",
+          id: "twelve",
           title: "Print & Finishes",
           image: "/images/colors.jpg",
           href: "/work/colors",
         },
         {
-          id: "book1",
+          id: "twelve",
           title: "On Design",
           image: "/images/book.jpg",
           href: "/work/on-design",
         },
         {
-          id: "packaging",
+          id: "twelve",
           title: "Color Labels",
           image: "/images/labels.jpg",
           href: "/work/labels",
         },
         {
-          id: "poster",
+          id: "twelve",
           title: "Play Poster",
           image: "/images/poster.jpg",
           href: "/work/poster",
         },
         {
-          id: "retro",
+          id: "twelve",
           title: "Retro Cars",
           image: "/images/retro.jpg",
           href: "/work/retro",
         },
         {
-          id: "shakespeare",
+          id: "twelve",
           title: "Shakespeare in the Park",
           image: "/images/shakespeare.jpg",
           href: "/work/shakespeare",
@@ -159,40 +159,40 @@ const data: HomePageProps = {
       style: "1",
       projects: [
         {
-          id: "branding",
+          id: "twelve",
           title: "Twelve Labs",
           image: "/images/twelve.jpg",
-          href: "/work/twelve",
+          href: "/projects/twelve",
         },
         {
-          id: "strike",
+          id: "twelve",
           title: "Strike Motion",
           image: "/images/strike.jpg",
-          href: "/work/strike",
+          href: "/projects/strike",
         },
         {
-          id: "sva",
+          id: "twelve",
           title: "SVA NYC",
           image: "/images/sva.jpg",
-          href: "/work/sva",
+          href: "/projects/sva",
         },
         {
-          id: "film",
+          id: "twelve",
           title: "Film Series",
           image: "/images/film.jpg",
-          href: "/work/film",
+          href: "/projects/film",
         },
         {
-          id: "redmotion",
+          id: "twelve",
           title: "24Hrs Motion",
           image: "/images/24hrs.jpg",
-          href: "/work/24hrs",
+          href: "/projects/24hrs",
         },
         {
-          id: "geo",
+          id: "twelve",
           title: "Geometric Installations",
           image: "/images/geo.jpg",
-          href: "/work/geo",
+          href: "/projects/geo",
         },
       ],
     },
@@ -667,7 +667,7 @@ const HomePage: FC = () => {
         ))}
       </Head>
 
-      <main className="min-h-screen bg-gray-50 dark:bg-black">
+      <main className="min-h-screen mt-16 bg-gray-50 dark:bg-black">
         <HeroCarousel slides={heroSlides} />
         {sections.map((section) => (
           <ProjectGridStyle1 key={section.id} {...section} />
