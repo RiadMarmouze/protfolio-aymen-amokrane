@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() { return request.auth != null && request.auth.token.admin == true; }
+    function isAllowlisted() { return request.auth != null && request.auth.token.allowlisted == true; }
+    function canWrite() { return isAdmin() || isAllowlisted(); }
+
+    match /projects/{id} {
+      allow read: if resource.data.published == true;
+      allow write, update, delete: if canWrite();
+      allow create: if canWrite();
+    }
+    match /articles/{id} {
+      allow read: if resource.data.published == true;
+      allow write, update, delete: if canWrite();
+      allow create: if canWrite();
+    }
+    match /offers/{id} {
+      allow create: if true;
+      allow read, update, delete: if canWrite();
+    }
+    match /collaborations/{id} {
+      allow read: if resource.data.published == true;
+      allow write, update, delete, create: if canWrite();
+    }
+  }
+}

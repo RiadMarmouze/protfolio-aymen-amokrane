@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        Inter: ["Inter", "sans-serif"],
-        Manrope: ["Manrope", "sans-serif"],
+        Roboto: ["Roboto", "sans-serif"],
+
       },
       colors: {
         background: "var(--background)",

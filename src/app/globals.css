@@ -1,22 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Manrope:wght@300;500&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 :root {
-  --background: #ffffff;
-  --foreground: #ffffff;
+  --nav-h: 64px;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+}
+body {
+  background: #fff;
+  color: #000;
 }

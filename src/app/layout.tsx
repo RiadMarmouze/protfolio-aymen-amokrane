@@ -1,38 +1,23 @@
+// app/layout.tsx
 import type { Metadata } from "next";
-import { Footer } from "@/components/common/Footer/Footer";
-import { Header } from "@/components/common/Header/Header";
-import { Geist, Geist_Mono } from "next/font/google";
-import "@/app/globals.css";
-import { footerData } from "@/components/common/Footer/FooterData";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aymen Amokrane",
-  description: "The Brand Wiz & An Artful Thinker",
+  title: "Aymen Portfolio — We Doing",
+  description: "Black & White Halftone portfolio site",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Header />
+      <body className="min-h-screen bg-white text-black">
         {children}
-        <Footer  data={footerData} />
+        {/* Shared halftone background overlay (keep only in root) */}
+        <div className="pointer-events-none fixed inset-0 opacity-[0.03] bg-[linear-gradient(transparent_23px,_#000_24px),linear-gradient(90deg,transparent_23px,_#000_24px)] bg-[size:24px_24px]" />
       </body>
     </html>
   );
