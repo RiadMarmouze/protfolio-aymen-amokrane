@@ -36,7 +36,8 @@ export default function CountUp({
   duration?: number;
   suffix?: string;
 }) {
-  const target = typeof value === "number" ? value : parseFloat(String(value)) || 0;
+  const target =
+    typeof value === "number" ? value : parseFloat(String(value)) || 0;
 
   // IMPORTANT: include `| null` here to match the initial null
   const ref = useRef<HTMLSpanElement | null>(null);

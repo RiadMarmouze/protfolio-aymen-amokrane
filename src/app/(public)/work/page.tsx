@@ -1,6 +1,5 @@
 "use client";
 import SectionTitle from "@/components/SectionTitle";
-import Footer from "@/components/Footer";
 import ProjectThumb from "@/components/ProjectThumb";
 import FilterPill from "@/components/FilterPill";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -183,8 +182,6 @@ export default function WorkPage() {
           </div>
         )}
       </section>
-
-      <Footer />
     </main>
   );
 }

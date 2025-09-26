@@ -1,7 +1,6 @@
 import SectionTitle from "@/components/SectionTitle";
 import Placeholder from "@/components/Placeholder";
 import { Btn } from "@/components/ui";
-import Footer from "@/components/Footer";
 import Link from "next/link";
 
 export default function BlogPage() {
@@ -31,7 +30,6 @@ export default function BlogPage() {
           ))}
         </div>
       </main>
-      <Footer />
     </>
   );
 }

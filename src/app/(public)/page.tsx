@@ -3,7 +3,6 @@ import Placeholder from "@/components/Placeholder";
 import MarqueeClients from "@/components/MarqueeClients";
 import BigWordRotator from "@/components/BigWordRotator";
 import { Btn } from "@/components/ui";
-import Footer from "@/components/Footer";
 import EdgeLabel from "@/components/EdgeLabel";
 import { ROTATE_WORDS } from "@/lib/data";
 import Link from "next/link";
@@ -12,12 +11,46 @@ import PageIntroTransition from "@/components/PageIntroTransition"; // import it
 export default function HomePage() {
   return (
     <PageIntroTransition
-      bgColor="#000"
-      rectColor="#fff"
-      rectSize={{ w: 300, h: 100 }}
-      duration={2100}
-      shakeIntensity={4} // try 0..6
-      streakColor="rgba(0,0,0,0.5)" // darker streak over white rect
+      config={{
+        bgColor: "#000",
+        rectColor: "#fff",
+        rectSize: { w: 300, h: 100 },
+        borderRadius: 0,
+        imageUrl: "/images/common/logo.jpg",
+        imageFit: "cover",
+        imagePosition: "50% 45%",
+
+        durationMs: 2100, // legacy baseline (still used for expand timing heuristic)
+
+        // NEW: background visibility timing
+        bgFadeStartAtMs: 1800, // start fading the black background at 600ms
+        bgFadeDurationMs: 500, // fade the background over 300ms
+
+        // NEW: when to remove overlay entirely (independent)
+        overlayHideAtMs: 1200, // hide overlay shortly after the pop/expand
+
+        // motion
+        shakeIntensity: 4,
+        sweep: {
+          enabled: true,
+          color: "rgba(0,0,0,0.5)",
+          angleDeg: 135,
+          widthPct: 18,
+        },
+
+        // NEW: glow border
+        glow: {
+          enabled: true,
+          color: "#ffffff", // can be any CSS color (#hex, rgb, rgba, named)
+          blurPx: 5,
+          spreadPx: 2,
+          opacity: 0.3,
+        },
+
+        // optional image tint
+        disableTint: true,
+        tintOpacity: 0.35,
+      }}
     >
       <main className="relative">
         <EdgeLabel>Scroll v</EdgeLabel>
@@ -109,8 +142,6 @@ export default function HomePage() {
             </Link>
           </div>
         </section>
-
-        <Footer />
       </main>
     </PageIntroTransition>
   );

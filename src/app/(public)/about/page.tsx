@@ -1,6 +1,5 @@
 import SectionTitle from "@/components/SectionTitle";
 import Placeholder from "@/components/Placeholder";
-import Footer from "@/components/Footer";
 import CountUp from "@/components/CountUp";
 
 import {
@@ -118,8 +117,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </main>
   );
 }

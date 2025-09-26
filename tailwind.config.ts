@@ -13,25 +13,27 @@ export default {
 
       },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        // background: "var(--background)",
+        // foreground: "var(--foreground)",
       },
       animation: {
-        shimmer: "shimmer 1.5s infinite linear",
-        marquee: 'marquee 30s linear infinite',
+        'pg-jitter': 'pg-jitter 0.44s ease-in-out infinite',
+        'pg-sweep': 'pg-sweep 0.9s ease-in-out infinite',
       },
       keyframes: {
-        shimmer: {
-          "0%": { "background-position": "-200% 0" },
-          "100%": { "background-position": "200% 0" },
+        'pg-jitter': {
+          '0%': { transform: 'translate3d(0,0,0) rotate(0)' },
+          '20%': { transform: 'translate3d(calc(-1 * var(--pg-jitter-x)), var(--pg-jitter-y), 0) rotate(calc(-1 * var(--pg-jitter-deg)))' },
+          '40%': { transform: 'translate3d(var(--pg-jitter-x), calc(-0.75 * var(--pg-jitter-y)), 0) rotate(var(--pg-jitter-deg))' },
+          '60%': { transform: 'translate3d(calc(-0.6 * var(--pg-jitter-x)), calc(0.5 * var(--pg-jitter-y)), 0) rotate(calc(-0.6 * var(--pg-jitter-deg)))' },
+          '80%': { transform: 'translate3d(calc(0.6 * var(--pg-jitter-x)), calc(-0.4 * var(--pg-jitter-y)), 0) rotate(calc(0.6 * var(--pg-jitter-deg)))' },
+          '100%': { transform: 'translate3d(0,0,0) rotate(0)' },
         },
-        marquee: {
-          '0%': { transform: 'translateX(0%)' },
-          '100%': { transform: 'translateX(-50%)' },
+        'pg-sweep': {
+          '0%': { backgroundPositionX: '150%' },
+          '50%': { backgroundPositionX: '-50%' },
+          '100%': { backgroundPositionX: '150%' },
         },
-      },
-      backgroundSize: {
-        "200%": "200% 100%",
       },
     },
   },
