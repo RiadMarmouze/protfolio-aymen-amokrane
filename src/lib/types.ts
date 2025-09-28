@@ -1,6 +1,37 @@
-export type MediaItem = { type: "image" | "video"; url: string; alt?: string };
+export type MediaItem = {
+  type: "image" | "video";
+  url: string;
+  alt?: string;
+};
+
+export type ProjectTeamMember = {
+  name: string;
+  role: string;
+};
+
+export type ProjectLinks = {
+  behance?: string;
+  caseStudy?: string;
+  liveSite?: string;
+  repo?: string;
+};
+
+export type ProjectDetails = {
+  client: string;
+  sector: string;
+  discipline: string[];
+  tagline?: string;
+  summary: string;
+  team?: ProjectTeamMember[];
+  services?: string[];
+  deliverables?: string[];
+  timeline?: { start: string; end?: string } | string;
+  location?: string;
+  links?: ProjectLinks;
+};
+
 export type ProjectDoc = {
-  id?: string;
+  id: string;
   title: string;
   slug: string;
   year: number;
@@ -8,13 +39,16 @@ export type ProjectDoc = {
   industry: string;
   tagline: string;
   brief: string;
-  heroUrl?: string;
-  gallery?: MediaItem[];
-  quotes?: string[];
+  heroUrl: string;
+  gallery: MediaItem[];
   published: boolean;
-  createdAt?: number;
-  updatedAt?: number;
+  createdAt: number;
+  updatedAt: number;
+
+  quotes?: string[];
+  details?: ProjectDetails;
 };
+
 export type ArticleDoc = {
   id?: string;
   title: string;

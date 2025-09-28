@@ -1,6 +1,6 @@
 // app/(site)/layout.tsx
-import Footer from "@/components/Footer";
-import NavBar from "@/components/Navbar";
+import Footer from "@/components/public/common/Footer";
+import NavBar from "@/components/public/common/Navbar";
 
 export default function SiteLayout({
   children,

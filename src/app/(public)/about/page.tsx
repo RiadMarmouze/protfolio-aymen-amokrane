@@ -1,6 +1,6 @@
 import SectionTitle from "@/components/SectionTitle";
-import Placeholder from "@/components/Placeholder";
-import CountUp from "@/components/CountUp";
+import Placeholder from "@/components/public/common/Placeholder";
+import CountUp from "@/components/public/about/CountUp";
 
 import {
   experiences,

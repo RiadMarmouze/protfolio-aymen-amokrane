@@ -1,12 +1,12 @@
 import SectionTitle from "@/components/SectionTitle";
-import Placeholder from "@/components/Placeholder";
-import MarqueeClients from "@/components/MarqueeClients";
-import BigWordRotator from "@/components/BigWordRotator";
-import { Btn } from "@/components/ui";
+import Placeholder from "@/components/public/common/Placeholder";
+import MarqueeClients from "@/components/public/home/MarqueeClients";
+import BigWordRotator from "@/components/public/home/BigWordRotator";
+import { Btn } from "@/components/public/common/ui";
 import EdgeLabel from "@/components/EdgeLabel";
 import { ROTATE_WORDS } from "@/lib/data";
 import Link from "next/link";
-import PageIntroTransition from "@/components/PageIntroTransition"; // import it
+import PageIntroTransition from "@/components/public/home/PageIntroTransition"; // import it
 
 export default function HomePage() {
   return (

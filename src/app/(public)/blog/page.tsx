@@ -1,6 +1,6 @@
 import SectionTitle from "@/components/SectionTitle";
-import Placeholder from "@/components/Placeholder";
-import { Btn } from "@/components/ui";
+import Placeholder from "@/components/public/common/Placeholder";
+import { Btn } from "@/components/public/common/ui";
 import Link from "next/link";
 
 export default function BlogPage() {

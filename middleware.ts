@@ -1,11 +1,19 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "__session";
+/**
+ * Keep this in sync with your server-side name:
+ * src/server/cookies.ts -> COOKIE.SESSION or process.env.SESSION_COOKIE_NAME
+ */
+const SESSION_COOKIE_NAME =
+  process.env.SESSION_COOKIE_NAME?.trim() || "__session";
 
-// Tweak these to match your app:
+// Paths
 const PUBLIC_LOGIN_PATH = "/login";
 const DEFAULT_AFTER_LOGIN = "/admin";
+
+// Anything here is "cookie-required" at the edge.
+// (Server still does the real auth/role checks.)
 const PROTECTED_PREFIXES = ["/admin", "/api/respond"];
 
 /** Utility: does pathname start with any of the given prefixes? */
@@ -13,46 +21,65 @@ function startsWithAny(pathname: string, prefixes: string[]) {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p));
 }
 
+/** Only allow internal redirect targets (avoid open redirect). */
+function normalizeNext(next: string | null | undefined): string | null {
+  if (!next) return null;
+  // Allow absolute path only (no protocol/host)
+  return next.startsWith("/") ? next : null;
+}
+
 export function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
-  const hasSession = Boolean(req.cookies.get(COOKIE_NAME)?.value);
+  const { pathname } = req.nextUrl;
+  const searchParams = req.nextUrl.searchParams;
+  const hasSession = Boolean(req.cookies.get(SESSION_COOKIE_NAME)?.value);
 
   // If a signed-in user hits the login page, send them somewhere useful.
   if (pathname === PUBLIC_LOGIN_PATH && hasSession) {
-    const nextParam = searchParams.get("next");
-    const redirectPath =
-      nextParam && nextParam.startsWith("/") ? nextParam : DEFAULT_AFTER_LOGIN;
+    const nextParam = normalizeNext(searchParams.get("next"));
+    const redirectPath = nextParam ?? DEFAULT_AFTER_LOGIN;
 
     const url = req.nextUrl.clone();
     url.pathname = redirectPath;
-    url.search = ""; // drop any leftover params
+    url.search = ""; // drop leftover params
     return NextResponse.redirect(url);
   }
 
-  // Only guard routes that truly require a cookie.
+  // Only guard the routes we explicitly mark as protected.
   const needsAuth = startsWithAny(pathname, PROTECTED_PREFIXES);
   if (!needsAuth) return NextResponse.next();
 
-  // If we have the cookie, let the request pass. (Verification is server-side.)
+  // Edge guard = presence of cookie only. (Full verification happens server-side.)
   if (hasSession) return NextResponse.next();
 
   // No cookie:
-  // - If it's an API route, return 401 (machines expect status codes, not redirects).
   if (pathname.startsWith("/api/")) {
-    return new NextResponse(null, { status: 401 });
+    return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
   }
 
-  // - Otherwise, redirect to login with a reason + next param.
+  // Redirect to login with a reason + next param for return after login.
   const loginUrl = req.nextUrl.clone();
   loginUrl.pathname = PUBLIC_LOGIN_PATH;
   loginUrl.searchParams.set("reason", "auth");
-  // Preserve the original path + query so we can send the user back after login.
+
+  // Preserve original path + query so we can send the user back after login.
   const original = pathname + (req.nextUrl.search || "");
+  // original always begins with '/', so it's safe to pass as `next`.
   loginUrl.searchParams.set("next", original);
+
   return NextResponse.redirect(loginUrl);
 }
 
-// Match only what we need: protected app pages, protected API endpoint, and login page (for the auto-redirect).
+/**
+ * Match only what we need:
+ * - all admin pages
+ * - the protected API endpoint
+ * - the login page (to auto-redirect signed-in users)
+ *
+ * If you use i18n locales, you can extend this to include locale prefixes.
+ */
 export const config = {
   matcher: ["/admin/:path*", "/api/respond", "/login"],
 };

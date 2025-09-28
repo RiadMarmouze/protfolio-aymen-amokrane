@@ -1,10 +1,14 @@
-// app/admin/layout.tsx
-import AdminShell from "@/components/admin/AdminShell";
+import type { ReactNode } from "react";
+import AdminLayout from "@/components/admin/common/AdminLayout";
+import { requireAdmin } from "@/server/auth/guards"; // from your earlier auth.ts
 
-export default async function AdminLayout({
+export const dynamic = "force-dynamic"; // optional, if your auth is fully dynamic
+
+export default async function AdminSectionLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  return <AdminShell>{children}</AdminShell>;
+  await requireAdmin(); // redirects or 404s if not allowed
+  return <AdminLayout>{children}</AdminLayout>;
 }

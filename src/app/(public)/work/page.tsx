@@ -1,12 +1,12 @@
 "use client";
 import SectionTitle from "@/components/SectionTitle";
 import ProjectThumb from "@/components/ProjectThumb";
-import FilterPill from "@/components/FilterPill";
+import FilterPill from "@/components/public/work/FilterPill";
 import ScrollProgress from "@/components/ScrollProgress";
 import { useMemo, useState, useEffect } from "react";
-import { getProjects } from "@/lib/data";
 import { fetchApprovedCollaborations } from "@/lib/content";
 import type { ProjectDoc, CollaborationDoc } from "@/lib/types";
+import { getProjects } from "@/lib/data/projects";
 
 export default function WorkPage() {
   // If getProjects is already typed to return ProjectDoc[], this annotation is redundant—but it’s safe.
