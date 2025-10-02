@@ -13,7 +13,7 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils"; // OK: passing server action as prop
+import { cn } from "@/lib/utils/cn"; // OK: passing server action as prop
 import LogoutButton from "../LogoutButton";
 import { logoutAction } from "@/server/actions/auth";
 

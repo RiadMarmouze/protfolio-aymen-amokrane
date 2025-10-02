@@ -2,8 +2,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
-import type { ProjectDoc } from "@/lib/types";
+import { cn } from "@/lib/utils/cn";
+import type { ProjectDoc } from "@/lib/types/project";
 
 export default function ProjectThumb({
   p,

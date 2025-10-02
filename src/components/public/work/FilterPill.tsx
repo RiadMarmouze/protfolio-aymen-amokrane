@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 export default function FilterPill({
   active,
   onClick,

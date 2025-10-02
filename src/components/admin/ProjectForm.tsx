@@ -2,7 +2,8 @@
 import { useMemo, useState } from "react";
 import { useForm, type DeepPartial } from "react-hook-form";
 import Upload from "./Upload";
-import type { ProjectDoc, MediaItem } from "@/lib/types";
+import type { ProjectDoc } from "@/lib/types/project";
+import type {  MediaItem } from "@/lib/types/common";
 import { firestore } from "@/lib/firebase/client";
 import { doc, setDoc } from "firebase/firestore";
 

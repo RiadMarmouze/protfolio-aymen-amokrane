@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, ArrowUpRight } from "lucide-react";
-import { SECTIONS } from "@/lib/data";
+import { SECTIONS } from "@/lib/data/general";
 
 export default function NavBar() {
   const [visible, setVisible] = useState(false);

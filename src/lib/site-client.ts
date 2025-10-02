@@ -1,8 +1,8 @@
 "use client";
 import { firestore } from "@/lib/firebase/client";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import type { SiteSettings } from "./site";
-import { DEFAULT_SETTINGS } from "./site";
+import type { SiteSettings } from "./types/site";
+import { DEFAULT_SETTINGS } from "./types/site";
 const REF = () => doc(firestore, "site", "global");
 export async function getSiteSettings(): Promise<SiteSettings> {
   try {

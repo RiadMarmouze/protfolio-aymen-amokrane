@@ -1,5 +1,5 @@
-// lib/projects.ts
-import type { ProjectDoc } from "@/lib/types";
+// lib/data/projects.ts
+import type { ProjectDoc } from "@/lib/types/project";
 import { fillWithPlaceholders } from "./project-factory";
 
 export const projects: ProjectDoc[] = [

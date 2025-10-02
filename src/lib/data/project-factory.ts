@@ -1,5 +1,6 @@
 // lib/project-factory.ts
-import type { MediaItem, ProjectDetails, ProjectDoc } from "@/lib/types";
+import type { ProjectDetails, ProjectDoc } from "@/lib/types/project";
+import type { MediaItem } from "@/lib/types/common";
 
 /** deterministic pseudo-random helpers (no external deps) */
 const LCG =

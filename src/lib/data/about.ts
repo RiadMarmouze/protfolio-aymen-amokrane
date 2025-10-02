@@ -1,5 +1,3 @@
-// data/aboutData.ts
-
 export const experiences = [
   {
     role: "Senior Brand Designer",

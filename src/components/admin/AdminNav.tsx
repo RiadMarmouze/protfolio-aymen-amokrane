@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSelectedLayoutSegments } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 
 const links = [
   { href: "/admin", label: "Dashboard" },

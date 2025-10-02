@@ -4,7 +4,7 @@ import MarqueeClients from "@/components/public/home/MarqueeClients";
 import BigWordRotator from "@/components/public/home/BigWordRotator";
 import { Btn } from "@/components/public/common/ui";
 import EdgeLabel from "@/components/EdgeLabel";
-import { ROTATE_WORDS } from "@/lib/data";
+import { ROTATE_WORDS } from "@/lib/data/general";
 import Link from "next/link";
 import PageIntroTransition from "@/components/public/home/PageIntroTransition"; // import it
 

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 export default function HalftoneCursorBG({
   variant = "dark",
 }: {

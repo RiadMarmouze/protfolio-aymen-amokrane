@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { LogOut } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 
 function Submit() {
   const { pending } = useFormStatus();

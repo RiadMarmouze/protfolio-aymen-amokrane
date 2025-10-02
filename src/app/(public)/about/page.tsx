@@ -8,7 +8,7 @@ import {
   skills,
   tools,
   stats,
-} from "./data";
+} from "@/data/about";
 
 /* ===== Local style tokens (kept in this file) ===== */
 const container = "max-w-5xl mx-auto px-4";

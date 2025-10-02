@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 export default function EdgeLabel({
   children,
   side = "right",

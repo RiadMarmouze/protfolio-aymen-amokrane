@@ -2,7 +2,8 @@
 "use client";
 import { useForm } from "react-hook-form";
 import Upload from "./Upload";
-import type { ArticleDoc, MediaItem } from "@/lib/types";
+import type { ArticleDoc } from "@/lib/types/article";
+import type { MediaItem } from "@/lib/types/common";
 import { firestore } from "@/lib/firebase/client";
 import { doc, setDoc } from "firebase/firestore";
 import { useState } from "react";

@@ -17,7 +17,7 @@
     Settings,
     type LucideIcon,
   } from "lucide-react";
-  import { cn } from "@/lib/utils";
+  import { cn } from "@/lib/utils/cn";
   import { signOut } from "firebase/auth";
   import { auth } from "@/lib/firebase/client";
 

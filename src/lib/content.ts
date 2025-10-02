@@ -9,7 +9,9 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import type { ProjectDoc, ArticleDoc, CollaborationDoc } from "./types";
+import type { ProjectDoc } from "./types/project";
+import { ArticleDoc } from "./types/article";
+import { CollaborationDoc } from "./types/collaboration";
 export async function fetchPublishedProjects(max = 12): Promise<ProjectDoc[]> {
   try {
     const q = query(

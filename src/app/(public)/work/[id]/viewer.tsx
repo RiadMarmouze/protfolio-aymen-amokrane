@@ -6,7 +6,7 @@ import Link from "next/link";
 import Placeholder from "@/components/public/common/Placeholder";
 import { Btn } from "@/components/public/common/ui";
 
-import type { MediaItem } from "@/lib/types";
+import type { MediaItem } from "@/lib/types/common";
 import { getProjectById, getProjects } from "@/lib/data/projects";
 import Image from "next/image";
 
