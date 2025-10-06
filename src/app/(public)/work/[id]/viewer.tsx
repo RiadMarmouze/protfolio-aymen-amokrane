@@ -48,7 +48,9 @@ export default function ProjectViewer({ id }: { id: string }) {
 
     if (item.type === "image") {
       return (
-        <div className={`${heightClass} relative rounded-[2px] overflow-hidden`}>
+        <div
+          className={`${heightClass} relative rounded-[2px] overflow-hidden`}
+        >
           {/* <Image
             src={item.url}
             alt={item.alt ?? project.title}

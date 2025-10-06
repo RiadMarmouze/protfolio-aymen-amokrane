@@ -1,6 +1,5 @@
 // lib/data/projects.ts
 import type { ProjectDoc } from "@/lib/types/project";
-import { fillWithPlaceholders } from "./project-factory";
 
 export const projects: ProjectDoc[] = [
   {
@@ -231,8 +230,7 @@ export const projects: ProjectDoc[] = [
  * Pass the minimum total you want to show in a grid; placeholders will fill the rest.
  */
 export function getProjects(minTotal = 12): ProjectDoc[] {
-  const merged = fillWithPlaceholders(projects, minTotal);
-  return [...merged].sort((a, b) => b.updatedAt - a.updatedAt);
+  return projects;
 }
 
 export function getProjectById(id: string, minTotal = 12): ProjectDoc | undefined {
