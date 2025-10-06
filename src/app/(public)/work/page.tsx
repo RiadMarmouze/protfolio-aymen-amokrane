@@ -5,39 +5,28 @@ import { WorkGallery } from "@/components/public/work";
 import type { ProjectDoc } from "@/lib/types/project";
 import type { CollaborationDoc } from "@/lib/types/collaboration";
 
+
+import { getBaseUrl } from '@/lib/getBaseUrl';
+
 export const revalidate = 60;
 
-function getBaseUrl() {
-  if (typeof window !== "undefined") return "";
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
-
-
-async function getPublishedProjects(limit = 24): Promise<ProjectDoc[]> {
-  const res = await fetch(`${getBaseUrl()}/api/public/projects?limit=${limit}`, {
-    next: { revalidate },
+async function getPublishedProjects(limit = 24) {
+  const base = await getBaseUrl();
+  const res = await fetch(`${base}/api/public/projects?limit=${limit}`, {
+    next: { revalidate: 60 },
   });
-  if (!res.ok) {
-    console.error("Projects fetch failed:", res.statusText);
-    return [];
-  }
+  if (!res.ok) return [];
   const data = (await res.json()) as { items: ProjectDoc[] };
-  console.log("✅ Projects:", data.items);
   return data.items ?? [];
 }
 
-async function getApprovedCollaborations(limit = 6): Promise<CollaborationDoc[]> {
-  const res = await fetch(`${getBaseUrl()}/api/public/collaborations?limit=${limit}`, {
-    next: { revalidate },
+async function getApprovedCollaborations(limit = 6) {
+  const base = await getBaseUrl();
+  const res = await fetch(`${base}/api/public/collaborations?limit=${limit}`, {
+    next: { revalidate: 60 },
   });
-  if (!res.ok) {
-    console.error("Collaborations fetch failed:", res.statusText);
-    return [];
-  }
+  if (!res.ok) return [];
   const data = (await res.json()) as { items: CollaborationDoc[] };
-  console.log("✅ Collaborations:", data.items);
   return data.items ?? [];
 }
 
