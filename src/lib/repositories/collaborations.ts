@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { firestore } from "@/lib/firebase/client";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import type { CollaborationDoc } from "@/lib/types/collaboration";
