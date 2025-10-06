@@ -9,9 +9,11 @@ export const revalidate = 60;
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";
 }
+
 
 async function getPublishedProjects(limit = 24): Promise<ProjectDoc[]> {
   const res = await fetch(`${getBaseUrl()}/api/public/projects?limit=${limit}`, {
