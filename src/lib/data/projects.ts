@@ -229,10 +229,22 @@ export const projects: ProjectDoc[] = [
  * getAllProjectsStatic – use this in lists.
  * Pass the minimum total you want to show in a grid; placeholders will fill the rest.
  */
-export function getProjects(minTotal = 12): ProjectDoc[] {
-  return projects;
+
+interface GetProjectsOptions {
+  page?: number;
+  perPage?: number;
 }
 
-export function getProjectById(id: string, minTotal = 12): ProjectDoc | undefined {
-  return getProjects(minTotal).find((p) => p.id === id);
+export function getProjects({
+  page = 1,
+  perPage = 12,
+}: GetProjectsOptions = {}): ProjectDoc[] {
+  const start = (page - 1) * perPage;
+  const end = start + perPage;
+  return projects.slice(start, end);
+}
+
+
+export function getProjectById(id: string): ProjectDoc | undefined {
+  return projects.find((p) => p.id === id);
 }
