@@ -1,6 +1,6 @@
-import ProjectThumb from "@/components/ProjectThumb";
-import type { ProjectDoc } from "@/lib/types/project";
-export function GridRowFeature({ items }: { items: ProjectDoc[] }) {
+import type { Project } from "@/lib/types/project";
+import { ProjectThumb } from "../ProjectThumb";
+export function GridRowFeature({ items }: { items: Project[] }) {
   const [first, second] = items;
   return (
     <div className="mb-6">
@@ -9,7 +9,7 @@ export function GridRowFeature({ items }: { items: ProjectDoc[] }) {
           <ProjectThumb p={first} ratio="2x1" />
         </div>
         {second && (
-          <ProjectThumb key={second.id ?? second.slug} p={second} ratio="1x1" />
+          <ProjectThumb key={second.general.id ?? second.general.slug} p={second} ratio="1x1" />
         )}
       </div>
     </div>

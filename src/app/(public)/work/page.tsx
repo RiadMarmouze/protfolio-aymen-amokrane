@@ -1,22 +1,22 @@
 import SectionTitle from "@/components/SectionTitle";
 import ScrollProgress from "@/components/ScrollProgress";
-import { Container } from "@/components/public/layout/Container";
-import { WorkGallery } from "@/components/public/work";
-import type { ProjectDoc } from "@/lib/types/project";
+import { Container } from "@/components/public/layout/Container"
+import type { Project } from "@/lib/types/project";
 import type { CollaborationDoc } from "@/lib/types/collaboration";
 
 
 import { getBaseUrl } from '@/lib/getBaseUrl';
+import WorkPageClient from "@/components/public/work/WorkPage.client";
 
 export const revalidate = 60;
 
 async function getPublishedProjects(limit = 24) {
   const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/public/projects?limit=${limit}`, {
+  const res = await fetch(`${base}/api/public/work?limit=${limit}`, {
     next: { revalidate: 60 },
   });
   if (!res.ok) return [];
-  const data = (await res.json()) as { items: ProjectDoc[] };
+  const data = (await res.json()) as { items: Project[] };
   return data.items ?? [];
 }
 
@@ -46,7 +46,7 @@ export default async function WorkPage() {
           <SectionTitle>Latest project</SectionTitle>
         </Container>
       </section>
-      <WorkGallery allProjects={allProjects} collabs={collabs} latest={latest} />
+      <WorkPageClient  allProjects={allProjects} collabs={collabs} latest={latest} />
     </main>
   );
 }

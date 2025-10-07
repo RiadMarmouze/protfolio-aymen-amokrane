@@ -1,4 +1,4 @@
-import FilterPill from "@/components/public/work/FilterPill";
+import FilterPill from "./FilterPill";
 
 export type WorkFilterBarProps = Readonly<{
   years: number[];
