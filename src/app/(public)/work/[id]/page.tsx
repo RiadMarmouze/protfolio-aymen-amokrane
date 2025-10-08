@@ -28,8 +28,13 @@ export async function generateStaticParams() {
   return (data.items ?? []).map(({ id }) => ({ id }));
 }
 
-export async function generateMetadata({ params }: any): Promise<Metadata> {
-  const { id } = params; // no await
+/** Next 15+ promised params */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params; // ✅ await the promise
   const project = await getProject(id);
   if (!project) return { title: "Project not found" };
 
@@ -58,8 +63,10 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   };
 }
 
-export default async function ProjectPage({ params }: any) {
-  const { id } = params; // no await
+export default async function ProjectPage(
+  { params }: { params: Promise<{ id: string }> } // ✅ promised params
+) {
+  const { id } = await params; // ✅ await it
   const project = await getProject(id);
   if (!project) notFound();
   return <ProjectViewer project={project} />;
