@@ -71,6 +71,7 @@ export default function ProjectViewer({
             <div className="max-w-6xl mx-auto px-4">
               <MediaFlow
                 title={general.title}
+                brief={main.brief}
                 gallery={gallery}
                 quoteA={q0}
                 quoteB={q1}
@@ -141,12 +142,14 @@ type FlowNode =
 
 function MediaFlow({
   title,
+  brief,
   gallery,
   quoteA,
   quoteB,
   hasGallery,
 }: {
   title: string;
+  brief: string;
   gallery: MediaItemWithDims[];
   quoteA: string;
   quoteB: string;
@@ -155,9 +158,10 @@ function MediaFlow({
   const verticalFlow: FlowNode[] = useMemo(() => {
     const flow: FlowNode[] = [];
     gallery.forEach((item, i) => {
-      if (i === 0) flow.push({ kind: "text", text: quoteA });
+      if (i === 0) flow.push({ kind: "text", text: brief });
+      if (i === 1) flow.push({ kind: "text", text: quoteA });
       flow.push({ kind: "image", item, i });
-      if (i === 1) flow.push({ kind: "text", text: quoteB });
+      if (i === 2) flow.push({ kind: "text", text: quoteB });
     });
     return flow;
   }, [gallery, quoteA, quoteB]);
