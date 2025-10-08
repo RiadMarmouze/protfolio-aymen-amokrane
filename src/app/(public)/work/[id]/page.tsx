@@ -56,21 +56,22 @@ export async function generateMetadata(
   const p = project as unknown as Project;
 
   // Adjust these to your Project shape if different
-  const titleBase = (project as any)?.general?.title ?? "Project";
-  const year = (project as any)?.general?.year
-    ? ` — ${(project as any).general.year}`
+  const titleBase = p?.general?.title ?? "Project";
+  const year = p?.general?.year
+    ? ` — ${p.general.year}`
     : "";
   const title = `${titleBase}${year}`;
 
   const description =
-    (project as any)?.general?.brief ??
-    (project as any)?.general?.tagline ??
+    p?.main?.brief ??
+    p?.main?.details?.tagline ??
     "Project case study";
 
   const image =
-    (project as any)?.general?.cover ??
-    (project as any)?.cover ??
-    (project as any)?.gallery?.[0]?.url;
+    p?.general?.heroUrl
+    //  ??
+    // p?.cover ??
+    // p?.gallery?.[0]?.url;
 
   return {
     title,
@@ -102,5 +103,5 @@ export default async function ProjectPage({
   console.log(id);
   if (!project) notFound();
 
-  return <ProjectViewer project={project} />;
+  return <ProjectViewer project={project} related={related}/>;
 }
