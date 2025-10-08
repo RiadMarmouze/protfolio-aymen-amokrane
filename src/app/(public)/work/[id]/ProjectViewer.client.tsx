@@ -27,7 +27,7 @@ export default function ProjectViewer({
   // related = [],
 }: {
   project: Project;
-  related?: Project[];
+  // related?: Project[];
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
 
