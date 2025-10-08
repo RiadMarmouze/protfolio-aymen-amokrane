@@ -9,10 +9,10 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import type { ProjectDoc } from "./types/project";
+import type { Project } from "./types/project";
 import { ArticleDoc } from "./types/article";
 import { CollaborationDoc } from "./types/collaboration";
-export async function fetchPublishedProjects(max = 12): Promise<ProjectDoc[]> {
+export async function fetchPublishedProjects(max = 12): Promise<Project[]> {
   try {
     const q = query(
       collection(firestore, "projects"),

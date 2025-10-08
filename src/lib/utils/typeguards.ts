@@ -1,3 +1,3 @@
-import type { ProjectDoc } from "@/lib/types/project";
+import type { Project } from "@/lib/types/project";
 
-export const isProject = (x: ProjectDoc | undefined): x is ProjectDoc => Boolean(x);
+export const isProject = (x: Project | undefined): x is Project => Boolean(x);
