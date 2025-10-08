@@ -24,7 +24,7 @@ import { BlocksRenderer } from "./BlocksRenderer";
  */
 export default function ProjectViewer({
   project,
-  related = [],
+  // related = [],
 }: {
   project: Project;
   related?: Project[];
@@ -32,7 +32,7 @@ export default function ProjectViewer({
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const { general, main } = project;
-  const details = main.details;
+  // const details = main.details;
 
   // Quotes + gallery mapping
   const quotes = general.quotes ?? [];
