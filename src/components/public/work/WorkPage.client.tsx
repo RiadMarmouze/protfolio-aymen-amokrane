@@ -1,5 +1,5 @@
 "use client";
-import { memo, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Container } from "@/components/public/layout/Container";
 import { unique, sortDesc } from "@/lib/utils/array";
 import type { Project } from "@/lib/types/project";

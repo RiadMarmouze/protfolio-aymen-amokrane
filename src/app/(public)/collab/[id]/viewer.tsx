@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +21,10 @@ export default function CollaborationViewer({ id }: Props) {
       try {
         const snap = await getDoc(doc(firestore, "collaborations", id));
         if (!mounted) return;
-        if (snap.exists()) setCollab({ id: snap.id, ...(snap.data() as any) });
+        if (snap.exists()) {
+          const data = snap.data() as CollaborationDoc;
+          setCollab({ id: snap.id, ...data });
+        }
       } catch (e) {
         console.error("[CollaborationViewer] load error", e);
       }

@@ -48,9 +48,12 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await params;
   const project = await getProject(id);
+
   if (!project) {
     return { title: "Project not found" };
   }
+
+  const p = project as unknown as Project;
 
   // Adjust these to your Project shape if different
   const titleBase = (project as any)?.general?.title ?? "Project";
@@ -96,8 +99,8 @@ export default async function ProjectPage({
     getProject(id),
     getRelatedProjects(id, 6),
   ]);
-  console.log(id)
+  console.log(id);
   if (!project) notFound();
 
-  return <ProjectViewer project={project} related={related} />;
+  return <ProjectViewer project={project} />;
 }
