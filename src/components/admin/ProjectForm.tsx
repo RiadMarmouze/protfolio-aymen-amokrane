@@ -2,8 +2,7 @@
 import { useMemo, useState } from "react";
 import { useForm, type DeepPartial } from "react-hook-form";
 import Upload from "./Upload";
-import type { Project, ProjectTimeline } from "@/lib/types/project";
-
+import type { Project, ProjectTimeline, ProjectTeamMember } from "@/lib/types/project";
 import { firestore } from "@/lib/firebase/client";
 import { doc, setDoc } from "firebase/firestore";
 import { MediaItem } from "@/lib/types/common";
@@ -82,8 +81,8 @@ export default function ProjectForm({ id, initial }: Props) {
 
   // ----- watches (for dynamic UI) -----
   const gallery: MediaItem[] = watch("main.gallery") ?? [];
-  const team = watch("main.details.team") ?? [];
-  const timeline = watch("main.details.timeline");
+  const team: ProjectTeamMember[] = watch("main.details.team") ?? [];
+  const timeline = watch("main.details.timeline") as ProjectTimeline | undefined;
 
   const tagsFromInitial = arrToCSV(initial?.general?.tags);
   const disciplineFromInitial = arrToCSV(initial?.main?.details?.discipline);
@@ -124,7 +123,7 @@ export default function ProjectForm({ id, initial }: Props) {
   };
 
   const isTimelineLabel = (tl?: ProjectTimeline): tl is { label: string } =>
-    !!tl && (tl as any).label !== undefined;
+    typeof tl === "object" && tl !== null && "label" in tl;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -322,21 +321,21 @@ export default function ProjectForm({ id, initial }: Props) {
             <input
               placeholder="Start (e.g. 2021-06)"
               className="border rounded px-2 py-1"
-              value={(timeline as any)?.start ?? ""}
-              onChange={(e) => setValue("main.details.timeline", { start: e.currentTarget.value, end: (timeline as any)?.end })}
+              value={!timeline || !isTimelineLabel(timeline) ? (timeline?.start ?? "") : ""}
+              onChange={(e) => setValue("main.details.timeline", { start: e.currentTarget.value, end: !timeline || isTimelineLabel(timeline) ? "" : (timeline?.end ?? "") })}
             />
             <input
               placeholder="End (optional)"
               className="border rounded px-2 py-1"
-              value={(timeline as any)?.end ?? ""}
-              onChange={(e) => setValue("main.details.timeline", { start: (timeline as any)?.start ?? "", end: e.currentTarget.value })}
+              value={!timeline || !isTimelineLabel(timeline) ? (timeline?.end ?? "") : ""}
+              onChange={(e) => setValue("main.details.timeline", { start: !timeline || isTimelineLabel(timeline) ? "" : (timeline?.start ?? ""), end: e.currentTarget.value })}
             />
           </div>
         ) : (
           <input
             placeholder="Label (e.g. 2021–2023)"
             className="border rounded px-2 py-1"
-            value={(timeline as any)?.label ?? ""}
+            value={isTimelineLabel(timeline) ? (timeline.label ?? "") : ""}
             onChange={(e) => setValue("main.details.timeline", { label: e.currentTarget.value })}
           />
         )}
