@@ -3,80 +3,35 @@ import { useMemo, useState } from "react";
 import SectionTitle from "@/components/SectionTitle";
 import { Btn, Field, Input, Select } from "@/components/public/common/ui";
 import { X } from "lucide-react";
+import {
+  PRIORITY,
+  REQUIREMENTS,
+  KEYWORDS,
+  type PriorityKey,
+} from "@/data/contact";
 
 // ----------------------
-// Types
+// Styles
 // ----------------------
-type PriorityKey = "cafe" | "esports" | "fintech" | "event" | "logistics";
-
-interface Requirement {
-  timeline: string;
-  budget: string;
-  country: string;
-  scope: string;
-}
-
-// ----------------------
-// Constants / Data
-// ----------------------
-const PRIORITY: { key: PriorityKey; label: string }[] = [
-  { key: "cafe", label: "Cafe" },
-  { key: "esports", label: "E-Sports Team" },
-  { key: "fintech", label: "Fintech" },
-  { key: "event", label: "Event" },
-  { key: "logistics", label: "Logistics" },
-];
-
-const REQUIREMENTS: Record<PriorityKey, Requirement> = {
-  cafe: {
-    timeline: "6-8 weeks",
-    budget: "Starting from $12k",
-    country: "UAE or KSA preferred (open globally)",
-    scope: "Full brand identity + menu system + signage guidance",
-  },
-  esports: {
-    timeline: "8-10 weeks",
-    budget: "Starting from $18k",
-    country: "GCC / MENA",
-    scope: "Naming support, brand system, jersey kit, stream overlays",
-  },
-  fintech: {
-    timeline: "10-12 weeks",
-    budget: "Starting from $25k",
-    country: "Any (compliance-ready)",
-    scope: "Strategy, visual identity, design system, product UI direction",
-  },
-  event: {
-    timeline: "4-6 weeks",
-    budget: "Starting from $8k",
-    country: "UAE",
-    scope: "Event identity, stage screen kit, motion templates",
-  },
-  logistics: {
-    timeline: "6-8 weeks",
-    budget: "Starting from $14k",
-    country: "GCC / North Africa",
-    scope: "Brand identity, fleet livery, signage and wayfinding starter",
-  },
-};
-
-const KEYWORDS: Record<PriorityKey, string[]> = {
-  cafe: ["Identity", "Menu", "Signage"],
-  esports: ["Naming", "Brand", "Jerseys"],
-  fintech: ["Strategy", "Identity", "Design System"],
-  event: ["Event ID", "Screens", "Motion"],
-  logistics: ["Livery", "Wayfinding", "Guidelines"],
-};
-
-// ----------------------
-// Style Helpers (single source of truth)
-// ----------------------
-const BORDER = "border-2 border-black"; // consistent border everywhere
+const BORDER = "border-2 border-black";
 const CARD = `${BORDER} rounded-2xl`;
 const PILL = `${BORDER} rounded-full`;
 
 // ----------------------
-// UI Primitives
+// Helpers
+// ----------------------
+async function postOffer(payload: any) {
+  const res = await fetch("/api/public/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to submit");
+  return res.json();
+}
+
+// ----------------------
+// UI primitives
 // ----------------------
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -87,35 +42,23 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function CenteredSection({ children }: { children: React.ReactNode }) {
-  return <section className="mx-auto max-w-6xl px-4">{children}</section>;
-}
-
 function Modal({
   title,
   onClose,
   children,
-  ariaLabel,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  ariaLabel: string;
 }) {
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <div
-        className={`bg-white w-full max-w-2xl ${CARD} overflow-hidden`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-      >
+      <div className={`bg-white w-full max-w-2xl ${CARD} overflow-hidden`}>
         <div className="px-5 py-4 bg-black text-white flex items-center justify-between">
           <div className="font-medium">{title}</div>
           <button
             onClick={onClose}
             className={`${PILL} px-2 py-1 border-white`}
-            aria-label="Close"
           >
             <X size={16} />
           </button>
@@ -126,21 +69,26 @@ function Modal({
   );
 }
 
+function CenteredSection({ children }: { children: React.ReactNode }) {
+  return <section className="mx-auto max-w-6xl px-4">{children}</section>;
+}
+
+// ----------------------
+// Priority UI
+// ----------------------
 function PillTab({
   label,
   keywords,
   onClick,
-  className = "",
 }: {
   label: string;
   keywords: string[];
   onClick: () => void;
-  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`${PILL} ${className} text-center transition hover:bg-black hover:text-white w-full h-full flex flex-col items-center justify-center`}
+      className={`${PILL} text-center transition hover:bg-black hover:text-white w-64 h-24 flex flex-col items-center justify-center`}
     >
       <div className="text-lg font-semibold uppercase tracking-[0.12em]">
         {label}
@@ -152,28 +100,24 @@ function PillTab({
   );
 }
 
-// ----------------------
-// Feature Blocks
-// ----------------------
 function PriorityTabs({ onOpen }: { onOpen: (k: PriorityKey) => void }) {
-  // Fixed item size ensures consistent width/height across rows
-  const itemWrapper = "w-64 h-24"; // adjust once to tune layout
   return (
     <div className="flex flex-wrap justify-center gap-4 w-full max-w-[980px] mx-auto">
       {PRIORITY.map((p) => (
-        <div key={p.key} className={`${itemWrapper} flex`}>
-          <PillTab
-            label={p.label}
-            keywords={KEYWORDS[p.key]}
-            onClick={() => onOpen(p.key)}
-            className="px-6"
-          />
-        </div>
+        <PillTab
+          key={p.key}
+          label={p.label}
+          keywords={KEYWORDS[p.key]}
+          onClick={() => onOpen(p.key)}
+        />
       ))}
     </div>
   );
 }
 
+// ----------------------
+// Collab modal (only name/email)
+// ----------------------
 function RequirementModal({
   open,
   onClose,
@@ -186,14 +130,74 @@ function RequirementModal({
     () => PRIORITY.find((p) => p.key === open)?.label ?? "",
     [open]
   );
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(
+    null
+  );
+
+  const fieldInput = `${CARD} px-3 py-2 w-full`;
 
   if (!open || !data) return null;
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setMsg(null);
+
+    const formEl = e.currentTarget; // capture before await
+    const form = new FormData(formEl);
+
+    const name = String(form.get("name") || "");
+    const email = String(form.get("email") || "");
+    if (!name || !email || !open) {
+      setMsg({ type: "err", text: "Please add your name and email." });
+      return;
+    }
+
+    const projectName =
+      PRIORITY.find((p) => p.key === open)?.label ?? "Priority Project";
+    const req = REQUIREMENTS[open];
+
+    const payload = {
+      kind: "collab" as const,
+      priorityKey: open,
+      // same keys as job offer:
+      name,
+      email,
+      projectName,
+      industry: req.industryDefault,
+      budget: req.budget,
+      timeline: req.timeline,
+      country: req.country,
+      projectType: req.projectTypeDefault,
+      brief: req.scope,
+      // optional helpful context:
+      requirementSnapshot: {
+        timeline: req.timeline,
+        budget: req.budget,
+        country: req.country,
+        scope: req.scope,
+        industryDefault: req.industryDefault,
+        projectTypeDefault: req.projectTypeDefault,
+      },
+    };
+
+    try {
+      setLoading(true);
+      await postOffer(payload);
+      setLoading(false);
+      setMsg({
+        type: "ok",
+        text: "Thanks! Your collab request was submitted successfully.",
+      });
+      formEl.reset(); // safe: using captured element
+    } catch {
+      setLoading(false);
+      setMsg({ type: "err", text: "Failed to submit. Please try again." });
+    }
+  }
+
   return (
-    <Modal
-      title={title}
-      onClose={onClose}
-      ariaLabel={`${title} - Requirements`}
-    >
+    <Modal title={`${title} — Requirements`} onClose={onClose}>
       <div className="grid md:grid-cols-3 gap-4">
         <StatCard label="timeline" value={data.timeline} />
         <StatCard label="budget" value={data.budget} />
@@ -203,43 +207,141 @@ function RequirementModal({
         <div className="uppercase text-[10px] opacity-70">Scope</div>
         <p className="mt-1">{data.scope}</p>
       </div>
-      <div>
-        <a href="/contact" onClick={onClose} className="inline-block">
-          <Btn className={`${PILL} px-4 py-2 text-sm`}>Start this project</Btn>
-        </a>
-      </div>
+
+      <form className="grid md:grid-cols-2 gap-3 mt-3" onSubmit={onSubmit}>
+        <label className="grid gap-1">
+          <span className="text-xs uppercase opacity-70">Name</span>
+          <Input name="name" className={fieldInput} placeholder="Full name" />
+        </label>
+        <label className="grid gap-1">
+          <span className="text-xs uppercase opacity-70">Email</span>
+          <Input
+            name="email"
+            className={fieldInput}
+            placeholder="name@email.com"
+            type="email"
+          />
+        </label>
+
+        {msg && (
+          <div className="md:col-span-2">
+            <div
+              className={`${CARD} px-4 py-3 text-sm ${
+                msg.type === "ok" ? "bg-green-50" : "bg-red-50"
+              }`}
+            >
+              {msg.text}
+            </div>
+          </div>
+        )}
+
+        <div className="md:col-span-2 flex justify-end gap-2">
+          <Btn
+            type="button"
+            onClick={onClose}
+            className={`${PILL} px-4 py-2 text-sm`}
+          >
+            Close
+          </Btn>
+          <Btn
+            type="submit"
+            className={`${PILL} px-4 py-2 text-sm`}
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Start this project"}
+          </Btn>
+        </div>
+      </form>
     </Modal>
   );
 }
 
+// ----------------------
+// Job Inquiry (same as before)
+// ----------------------
 function InquiryForm() {
-  // Shared field classNames to ensure consistent borders + rounding
   const fieldInput = `${CARD} px-3 py-2 w-full`;
   const fieldSelect = `${CARD} px-3 py-2 w-full bg-white`;
   const fieldTextArea = `${CARD} px-3 py-2 min-h-[140px] w-full`;
 
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(
+    null
+  );
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formEl = e.currentTarget;
+    setMsg(null);
+    const form = new FormData(formEl);
+
+    const payload = {
+      kind: "job",
+      name: String(form.get("name") || ""),
+      email: String(form.get("email") || ""),
+      projectName: String(form.get("projectName") || ""),
+      industry: String(form.get("industry") || ""),
+      budget: String(form.get("budget") || ""),
+      timeline: String(form.get("timeline") || ""),
+      country: String(form.get("country") || ""),
+      projectType: String(form.get("projectType") || ""),
+      brief: String(form.get("brief") || ""),
+    };
+
+    try {
+      setLoading(true);
+      await postOffer(payload);
+      setLoading(false);
+      setMsg({
+        type: "ok",
+        text: "Thanks! Your job offer was submitted successfully.",
+      });
+      formEl.reset();
+    } catch {
+      setLoading(false);
+      setMsg({ type: "err", text: "Failed to submit. Please try again." });
+    }
+  }
+
   return (
     <form
       className="grid md:grid-cols-2 gap-4 w-full max-w-2xl"
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={onSubmit}
     >
       <Field label="Your name">
-        <Input className={fieldInput} placeholder="Full name" />
+        <Input
+          className={fieldInput}
+          placeholder="Full name"
+          name="name"
+          required
+        />
       </Field>
       <Field label="Email">
-        <Input className={fieldInput} placeholder="name@email.com" />
+        <Input
+          className={fieldInput}
+          placeholder="name@email.com"
+          name="email"
+          type="email"
+          required
+        />
       </Field>
       <Field className="md:col-span-2" label="Project name">
-        <Input className={fieldInput} placeholder="e.g., Glowz" />
+        <Input
+          className={fieldInput}
+          placeholder="e.g., Glowz"
+          name="projectName"
+          required
+        />
       </Field>
       <Field label="Industry">
         <Input
           className={fieldInput}
-          placeholder="e.g., Beauty / F&B / Fintech"
+          placeholder="e.g., Beauty / F&B"
+          name="industry"
         />
       </Field>
       <Field label="Budget (USD)">
-        <Select className={fieldSelect}>
+        <Select className={fieldSelect} name="budget">
           <option>5k-8k</option>
           <option>8k-12k</option>
           <option>12k-20k</option>
@@ -247,7 +349,7 @@ function InquiryForm() {
         </Select>
       </Field>
       <Field label="Timeline">
-        <Select className={fieldSelect}>
+        <Select className={fieldSelect} name="timeline">
           <option>4-6 weeks</option>
           <option>6-8 weeks</option>
           <option>8-12 weeks</option>
@@ -255,10 +357,10 @@ function InquiryForm() {
         </Select>
       </Field>
       <Field label="Country">
-        <Input className={fieldInput} placeholder="e.g., UAE" />
+        <Input className={fieldInput} placeholder="e.g., UAE" name="country" />
       </Field>
       <Field className="md:col-span-2" label="Project type">
-        <Select className={fieldSelect}>
+        <Select className={fieldSelect} name="projectType">
           <option>Branding</option>
           <option>Strategy</option>
           <option>Illustration</option>
@@ -270,11 +372,29 @@ function InquiryForm() {
         <textarea
           className={fieldTextArea}
           placeholder="Give me a quick brief."
+          name="brief"
         />
       </Field>
+
+      {msg && (
+        <div className="md:col-span-2">
+          <div
+            className={`${CARD} px-4 py-3 text-sm ${
+              msg.type === "ok" ? "bg-green-50" : "bg-red-50"
+            }`}
+          >
+            {msg.text}
+          </div>
+        </div>
+      )}
+
       <div className="md:col-span-2 flex justify-center">
-        <Btn type="submit" className={`${PILL} px-5 py-2 text-sm`}>
-          <span>Send inquiry</span>
+        <Btn
+          type="submit"
+          className={`${PILL} px-5 py-2 text-sm`}
+          disabled={loading}
+        >
+          {loading ? "Sending..." : "Send inquiry"}
         </Btn>
       </div>
     </form>
@@ -288,33 +408,26 @@ export default function ContactPage() {
   const [open, setOpen] = useState<PriorityKey | null>(null);
 
   return (
-    <>
-      <main className="py-12">
-        <CenteredSection>
-          {/* Priority Projects */}
-          <SectionTitle>Priority Projects</SectionTitle>
-          <p className="mt-4 mb-8 text-sm opacity-80 text-center">
-            Pre-defined scope with clear timelines & budgets. Pick one to see
-            the exact requirements.
-          </p>
+    <main className="py-12">
+      <CenteredSection>
+        <SectionTitle>Priority Projects</SectionTitle>
+        <p className="mt-4 mb-8 text-sm opacity-80 text-center">
+          Pre-defined scope with clear timelines & budgets. Pick one to see
+          requirements.
+        </p>
 
-          {/* Tabs (two rows, centered; consistent sizing) */}
-          <div className="flex justify-center">
-            <PriorityTabs onOpen={setOpen} />
-          </div>
+        <div className="flex justify-center">
+          <PriorityTabs onOpen={setOpen} />
+        </div>
+        <RequirementModal open={open} onClose={() => setOpen(null)} />
 
-          <RequirementModal open={open} onClose={() => setOpen(null)} />
+        <div className="my-12 mx-auto h-0 w-full max-w-6xl border-t-2 border-black" />
 
-          {/* Divider */}
-          <div className="my-12 mx-auto h-0 w-full max-w-6xl border-t-2 border-black" />
-
-          {/* Project Inquiry */}
-          <SectionTitle>Project Inquiry</SectionTitle>
-          <div className="mt-4 flex justify-center">
-            <InquiryForm />
-          </div>
-        </CenteredSection>
-      </main>
-    </>
+        <SectionTitle>Project Inquiry</SectionTitle>
+        <div className="mt-4 flex justify-center">
+          <InquiryForm />
+        </div>
+      </CenteredSection>
+    </main>
   );
 }
