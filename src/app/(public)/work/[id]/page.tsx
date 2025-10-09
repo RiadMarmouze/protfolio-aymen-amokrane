@@ -1,4 +1,4 @@
-import type { Metadata } from "next"; // ✅ add
+// import type { Metadata } from "next"; // ✅ add
 import { notFound } from "next/navigation";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 import type { Project } from "@/lib/types/project";
