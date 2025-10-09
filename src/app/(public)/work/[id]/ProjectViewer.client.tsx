@@ -24,10 +24,8 @@ import { BlocksRenderer } from "./BlocksRenderer";
  */
 export default function ProjectViewer({
   project,
-  related = [],
 }: {
   project: Project;
-  related?: Project[];
 }) {
   const [aboutOpen, setAboutOpen] = useState(false);
 
