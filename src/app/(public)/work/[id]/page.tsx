@@ -1,3 +1,4 @@
+// app/(public)/work/[id]/page.tsx (or similar)
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getBaseUrl } from "@/lib/getBaseUrl";
@@ -7,63 +8,89 @@ import ProjectViewer from "./ProjectViewer.client";
 export const revalidate = 60;
 export const dynamicParams = true;
 
-async function getProject(id: string) {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/public/work/${id}`, {
-    next: { revalidate },
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Failed to fetch project");
-  const data = (await res.json()) as { item: Project };
-  return data.item;
+async function safeGetBase(): Promise<string | null> {
+  try {
+    const base = await getBaseUrl();
+    // Must be absolute to be safe for new URL()
+    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, "");
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function getProject(id: string): Promise<Project | null> {
+  const base = await safeGetBase();
+  // If base is unknown, fall back to relative fetch (works in prod if the route exists)
+  const url = base ? `${base}/api/public/work/${id}` : `/api/public/work/${id}`;
+
+  try {
+    const res = await fetch(url, { next: { revalidate } });
+    if (res.status === 404) return null;
+    if (!res.ok) {
+      // Don’t throw hard here; let the page handle missing data gracefully
+      return null;
+    }
+    const data = (await res.json()) as { item: Project | null };
+    return data?.item ?? null;
+  } catch {
+    // Network/runtime error → treat as not found (avoid 500)
+    return null;
+  }
 }
 
 export async function generateStaticParams() {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/public/work?select=id`, {
-    next: { revalidate },
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as { items: Array<{ id: string }> };
-  return (data.items ?? []).map(({ id }) => ({ id }));
+  const base = await safeGetBase();
+  const url = base ? `${base}/api/public/work?select=id` : `/api/public/work?select=id`;
+
+  try {
+    const res = await fetch(url, { next: { revalidate } });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { items: Array<{ id: string }> };
+    return (data.items ?? []).map(({ id }) => ({ id }));
+  } catch {
+    return [];
+  }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  // Resolve params + base in parallel
-  const [{ id }, base] = await Promise.all([params, getBaseUrl()]);
-  const origin = base.replace(/\/+$/, "");
-  const metadataBase = new URL(origin);
+export async function generateMetadata(
+  { params }: { params: { id: string } }
+): Promise<Metadata> {
+  const id = params.id;
 
-  const project = await getProject(id);
+  // Resolve base + project in parallel, but guard both
+  const [base, project] = await Promise.all([safeGetBase(), getProject(id)]);
+
+  // Only set metadataBase if we have a valid absolute base
+  const metadataBase = base ? new URL(base) : undefined;
+
   if (!project) {
     return {
-      metadataBase,
+      ...(metadataBase ? { metadataBase } : {}),
       title: "Project not found",
+      description: "This project could not be found.",
+      alternates: { canonical: `/work/${id}` },
     };
   }
 
-  const p = project as Project;
+  const p = project;
   const titleBase = p?.general?.title ?? "Project";
   const year = p?.general?.year ? ` — ${p.general.year}` : "";
   const title = `${titleBase}${year}`;
   const description =
     p?.main?.brief ?? p?.main?.details?.tagline ?? "Project case study";
 
-  // Make hero URL absolute if needed
+  // Build OG image as absolute if possible, else leave undefined
   const rawImage = p?.general?.heroUrl;
   const ogImage =
     rawImage && /^https?:\/\//i.test(rawImage)
       ? rawImage
-      : rawImage
-      ? `${origin}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`
+      : rawImage && base
+      ? `${base}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`
       : undefined;
 
   return {
-    metadataBase,
+    ...(metadataBase ? { metadataBase } : {}),
     title,
     description,
     openGraph: {
@@ -85,12 +112,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default async function ProjectPage(
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
   const project = await getProject(id);
   if (!project) notFound();
   return <ProjectViewer project={project} />;
