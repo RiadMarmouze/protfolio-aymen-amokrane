@@ -1,4 +1,4 @@
-// app/(public)/work/[id]/page.tsx (or similar)
+// app/(public)/work/[id]/page.tsx
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getBaseUrl } from "@/lib/getBaseUrl";
@@ -11,7 +11,6 @@ export const dynamicParams = true;
 async function safeGetBase(): Promise<string | null> {
   try {
     const base = await getBaseUrl();
-    // Must be absolute to be safe for new URL()
     if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, "");
     return null;
   } catch {
@@ -21,20 +20,15 @@ async function safeGetBase(): Promise<string | null> {
 
 async function getProject(id: string): Promise<Project | null> {
   const base = await safeGetBase();
-  // If base is unknown, fall back to relative fetch (works in prod if the route exists)
   const url = base ? `${base}/api/public/work/${id}` : `/api/public/work/${id}`;
 
   try {
     const res = await fetch(url, { next: { revalidate } });
     if (res.status === 404) return null;
-    if (!res.ok) {
-      // Don’t throw hard here; let the page handle missing data gracefully
-      return null;
-    }
+    if (!res.ok) return null;
     const data = (await res.json()) as { item: Project | null };
     return data?.item ?? null;
   } catch {
-    // Network/runtime error → treat as not found (avoid 500)
     return null;
   }
 }
@@ -53,15 +47,15 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata(
-  { params }: { params: { id: string } }
-): Promise<Metadata> {
-  const id = params.id;
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  // Your setup expects a Promise here:
+  const { id } = await params;
 
-  // Resolve base + project in parallel, but guard both
   const [base, project] = await Promise.all([safeGetBase(), getProject(id)]);
-
-  // Only set metadataBase if we have a valid absolute base
   const metadataBase = base ? new URL(base) : undefined;
 
   if (!project) {
@@ -77,10 +71,8 @@ export async function generateMetadata(
   const titleBase = p?.general?.title ?? "Project";
   const year = p?.general?.year ? ` — ${p.general.year}` : "";
   const title = `${titleBase}${year}`;
-  const description =
-    p?.main?.brief ?? p?.main?.details?.tagline ?? "Project case study";
+  const description = p?.main?.brief ?? p?.main?.details?.tagline ?? "Project case study";
 
-  // Build OG image as absolute if possible, else leave undefined
   const rawImage = p?.general?.heroUrl;
   const ogImage =
     rawImage && /^https?:\/\//i.test(rawImage)
@@ -112,10 +104,12 @@ export async function generateMetadata(
   };
 }
 
-export default async function ProjectPage(
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export default async function ProjectPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
   return <ProjectViewer project={project} />;
