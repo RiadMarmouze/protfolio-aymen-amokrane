@@ -1,36 +1,36 @@
 // import type { Metadata } from "next"; // ✅ add
-import { notFound } from "next/navigation";
-import { getBaseUrl } from "@/lib/getBaseUrl";
-import type { Project } from "@/lib/types/project";
+// import { notFound } from "next/navigation";
+// import { getBaseUrl } from "@/lib/getBaseUrl";
+// import type { Project } from "@/lib/types/project";
 import ProjectViewer from "./ProjectViewer.client";
 
-export const revalidate = 60; // same cache policy as multi-project page
-export const dynamicParams = true; // ✅ allow fallback for new ids
+// export const revalidate = 60; // same cache policy as multi-project page
+// export const dynamicParams = true; // ✅ allow fallback for new ids
 
-async function getProject(id: string) {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/public/work/${id}`, {
-    next: { revalidate },
-  });
+// async function getProject(id: string) {
+//   const base = await getBaseUrl();
+//   const res = await fetch(`${base}/api/public/work/${id}`, {
+//     next: { revalidate },
+//   });
 
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Failed to fetch project");
+//   if (res.status === 404) return null;
+//   if (!res.ok) throw new Error("Failed to fetch project");
 
-  const data = (await res.json()) as { item: Project };
-  return data.item;
-}
+//   const data = (await res.json()) as { item: Project };
+//   return data.item;
+// }
 
 
-/** ✅ Prebuild known ids (SSG/ISR) while still allowing runtime fallback */
-export async function generateStaticParams() {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/public/work?select=id`, {
-    next: { revalidate },
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as { items: Array<{ id: string }> };
-  return (data.items ?? []).map(({ id }) => ({ id }));
-}
+// /** ✅ Prebuild known ids (SSG/ISR) while still allowing runtime fallback */
+// export async function generateStaticParams() {
+//   const base = await getBaseUrl();
+//   const res = await fetch(`${base}/api/public/work?select=id`, {
+//     next: { revalidate },
+//   });
+//   if (!res.ok) return [];
+//   const data = (await res.json()) as { items: Array<{ id: string }> };
+//   return (data.items ?? []).map(({ id }) => ({ id }));
+// }
 
 /** ✅ Per-project SEO */
 // export async function generateMetadata(
@@ -81,9 +81,9 @@ export default async function ProjectPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const project = await getProject(id);
+  // const { id } = await params;
+  // const project = await getProject(id);
 
-  if (!project) notFound();
-  return <ProjectViewer project={project} />;
+  // if (!project) notFound();
+  return <ProjectViewer />;
 }
