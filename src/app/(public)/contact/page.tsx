@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useMemo, useState } from "react";
 import SectionTitle from "@/components/SectionTitle";
