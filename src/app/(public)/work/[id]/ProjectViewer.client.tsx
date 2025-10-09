@@ -1,9 +1,16 @@
-// Project Text Probe — minimal, fast, best-practice (RSC-friendly)
-// Uses your canonical Project typing and MediaItem import.
-// Renders text-only + gallery *metadata* (no images/videos) to validate data load.
+// src/app/(public)/work/[id]/ProjectTextProbe.tsx
+"use client";
 
+import React from "react";
 import { MediaItem } from "@/lib/types/common";
-import { HeadingBlock, ListBlock, ParagraphBlock, Project, ProjectTimeline, QuoteBlock } from "@/lib/types/project";
+import {
+  HeadingBlock,
+  ListBlock,
+  ParagraphBlock,
+  Project,
+  ProjectTimeline,
+  QuoteBlock,
+} from "@/lib/types/project";
 
 // ---------------------------- Utility helpers -----------------------------
 const nonEmpty = (v: unknown) =>
@@ -25,21 +32,37 @@ function fileNameFromUrl(url: string) {
     const last = u.pathname.split("/").filter(Boolean).pop();
     return last ?? url;
   } catch {
-    const parts = url.split("?")[0].split("#")[0].split("/");
-    return parts.pop() || url;
+    const parts = url.split("?")[0].split("#")[0].split("/").filter(Boolean);
+    return parts.pop() ?? url;
   }
 }
 
-// Try to read dimensions from several common shapes without assuming a specific schema
+/**
+ * Some data sources may provide dimensions in different shapes.
+ * These helper types let us narrow without using `any`.
+ */
+type MaybeDims = { dimensions?: { w?: number; h?: number }; width?: number; height?: number };
+type MaybeTyped = { type?: string };
+type MaybeAltUrl = { alt?: string; url?: string };
+
 function getDims(item: MediaItem): { w?: number; h?: number } | undefined {
-  const anyItem = item as any;
-  if (anyItem?.dimensions && typeof anyItem.dimensions.w === "number") return anyItem.dimensions;
-  if (typeof anyItem?.width === "number" && typeof anyItem?.height === "number")
-    return { w: anyItem.width, h: anyItem.height };
+  const i = item as unknown as MaybeDims;
+  if (
+    i?.dimensions &&
+    typeof i.dimensions.w === "number" &&
+    typeof i.dimensions.h === "number"
+  ) {
+    return { w: i.dimensions.w, h: i.dimensions.h };
+  }
+  if (typeof i?.width === "number" && typeof i?.height === "number") {
+    return { w: i.width, h: i.height };
+  }
   return undefined;
 }
 
-function inferAspect(item: MediaItem): { kind: "square" | "wide"; ratio?: number } {
+function inferAspect(
+  item: MediaItem
+): { kind: "square" | "wide"; ratio?: number } {
   const dims = getDims(item);
   if (dims?.w && dims?.h) {
     const ratio = dims.w / dims.h;
@@ -47,7 +70,7 @@ function inferAspect(item: MediaItem): { kind: "square" | "wide"; ratio?: number
     return { kind: ratio >= 1.8 ? "wide" : "square", ratio };
   }
   // Fall back: treat videos as wide, images as square
-  const t = (item as any).type as string | undefined;
+  const t = (item as unknown as MaybeTyped).type;
   return { kind: t === "video" ? "wide" : "square" };
 }
 
@@ -100,7 +123,7 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
               <SectionLabel>Team</SectionLabel>
               <ul className="list-disc pl-5 space-y-1">
                 {d.team.map((m) => (
-                  <li key={`${m.name}-${m.role}`} className="text-sm">
+                  <li key={`${m.name}-${m.role ?? "member"}`} className="text-sm">
                     <span className="font-medium">{m.name}</span>
                     {m.role ? <span> — {m.role}</span> : null}
                   </li>
@@ -124,10 +147,26 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
             <div>
               <SectionLabel>Links</SectionLabel>
               <ul className="list-disc pl-5 space-y-1">
-                {d.links.behance && <li><ExtLink href={d.links.behance} label="Behance" /></li>}
-                {d.links.caseStudy && <li><ExtLink href={d.links.caseStudy} label="Case Study" /></li>}
-                {d.links.liveSite && <li><ExtLink href={d.links.liveSite} label="Live Site" /></li>}
-                {d.links.repo && <li><ExtLink href={d.links.repo} label="Repo" /></li>}
+                {d.links.behance && (
+                  <li>
+                    <ExtLink href={d.links.behance} label="Behance" />
+                  </li>
+                )}
+                {d.links.caseStudy && (
+                  <li>
+                    <ExtLink href={d.links.caseStudy} label="Case Study" />
+                  </li>
+                )}
+                {d.links.liveSite && (
+                  <li>
+                    <ExtLink href={d.links.liveSite} label="Live Site" />
+                  </li>
+                )}
+                {d.links.repo && (
+                  <li>
+                    <ExtLink href={d.links.repo} label="Repo" />
+                  </li>
+                )}
               </ul>
             </div>
           )}
@@ -142,41 +181,55 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
           {project.extra?.blocks?.length ? (
             project.extra.blocks.map((b) => {
               switch (b.type) {
-                case "heading":
+                case "heading": {
+                  const hb = b as HeadingBlock;
                   return (
-                    <p key={b.id} className="font-semibold">
-                      {(b as HeadingBlock).text}
+                    <p key={hb.id} className="font-semibold">
+                      {hb.text}
                     </p>
                   );
-                case "quote":
+                }
+                case "quote": {
+                  const qb = b as QuoteBlock;
                   return (
-                    <blockquote key={b.id} className="border-l-2 pl-3 italic opacity-90">
-                      {(b as QuoteBlock).text}
+                    <blockquote
+                      key={qb.id}
+                      className="border-l-2 pl-3 italic opacity-90"
+                    >
+                      {qb.text}
                     </blockquote>
                   );
-                case "list":
+                }
+                case "list": {
+                  const lb = b as ListBlock;
                   return (
-                    <ul key={b.id} className="list-disc pl-5 space-y-1">
-                      {(b as ListBlock).items.map((it, i) => (
-                        <li key={`${b.id}-${i}`}>{it}</li>
+                    <ul key={lb.id} className="list-disc pl-5 space-y-1">
+                      {lb.items.map((it, i) => (
+                        <li key={`${lb.id}-${i}`}>{it}</li>
                       ))}
                     </ul>
                   );
-                case "paragraph":
+                }
+                case "paragraph": {
+                  const pb = b as ParagraphBlock;
                   return (
-                    <p key={b.id} className="leading-relaxed">
-                      {(b as ParagraphBlock).text}
+                    <p key={pb.id} className="leading-relaxed">
+                      {pb.text}
                     </p>
                   );
+                }
                 case "image":
                 case "video":
-                case "grid":
+                case "grid": {
                   // Metadata-only representation for media blocks
                   return (
                     <p key={b.id} className="text-sm opacity-70">
                       [Media block: {b.type}]
                     </p>
                   );
+                }
+                default:
+                  return null;
               }
             })
           ) : (
@@ -210,26 +263,43 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
                   {gallery.map((item, idx) => {
                     const aspect = inferAspect(item);
                     const dims = getDims(item);
-                    const dimsTxt = dims?.w && dims?.h ? `${dims.w}×${dims.h}` : "—";
-                    const ratioTxt = aspect.ratio !== undefined ? aspect.ratio.toFixed(3) : "—";
+                    const dimsTxt =
+                      dims?.w && dims?.h ? `${dims.w}×${dims.h}` : "—";
+                    const ratioTxt =
+                      aspect.ratio !== undefined
+                        ? aspect.ratio.toFixed(3)
+                        : "—";
                     const kind = aspect.kind;
-                    const anyItem = item as any;
-                    const type = anyItem?.type ?? "image"; // fall back if MediaItem doesn't expose type
-                    const alt = anyItem?.alt ?? "—";
-                    const url = (anyItem?.url as string) ?? "";
+
+                    const typed = item as unknown as MaybeTyped & MaybeAltUrl;
+                    const type = typed.type ?? "image";
+                    const alt = typed.alt ?? "—";
+                    const url = typed.url ?? "";
+
                     return (
-                      <tr key={`${url}-${idx}`} className="border-b align-top">
+                      <tr key={`${url || "item"}-${idx}`} className="border-b align-top">
                         <Td>{idx + 1}</Td>
                         <Td>{kind}</Td>
                         <Td>{type}</Td>
-                        <Td className="font-medium break-all">{fileNameFromUrl(url)}</Td>
+                        <Td className="font-medium break-all">
+                          {url ? fileNameFromUrl(url) : "—"}
+                        </Td>
                         <Td className="break-all max-w-[16rem]">{alt}</Td>
                         <Td>{dimsTxt}</Td>
                         <Td>{ratioTxt}</Td>
                         <Td className="break-all max-w-[24rem]">
-                          <a href={url} className="underline" target="_blank" rel="noreferrer noopener">
-                            {url}
-                          </a>
+                          {url ? (
+                            <a
+                              href={url}
+                              className="underline"
+                              target="_blank"
+                              rel="noreferrer noopener"
+                            >
+                              {url}
+                            </a>
+                          ) : (
+                            "—"
+                          )}
                         </Td>
                       </tr>
                     );
@@ -250,7 +320,8 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-          {project.general.title} <span className="opacity-60">— {project.general.year}</span>
+          {project.general.title}{" "}
+          <span className="opacity-60">— {project.general.year}</span>
         </h1>
         {nonEmpty(project.main.brief) && (
           <p className="mt-3 text-base leading-relaxed">{project.main.brief}</p>
@@ -267,7 +338,10 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
       <section aria-label="Project notes" className="space-y-8">
         {sections.map((s) => (
           <article key={s.id} aria-labelledby={s.id}>
-            <h2 id={s.id} className="uppercase tracking-wider text-[11px] opacity-70 mb-2">
+            <h2
+              id={s.id}
+              className="uppercase tracking-wider text-[11px] opacity-70 mb-2"
+            >
               {s.label}
             </h2>
             {s.content}
@@ -277,7 +351,8 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
 
       {/* Footer meta */}
       <footer className="mt-12 pt-6 border-t text-sm opacity-70">
-        Text-only probe view. No images/videos rendered — metadata only. Use this to validate data shape & load time.
+        Text-only probe view. No images/videos rendered — metadata only. Use this
+        to validate data shape &amp; load time.
       </footer>
     </main>
   );
@@ -294,7 +369,11 @@ function Quote({ text }: { text: string }) {
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div className="uppercase tracking-wider text-[11px] opacity-70">{children}</div>;
+  return (
+    <div className="uppercase tracking-wider text-[11px] opacity-70">
+      {children}
+    </div>
+  );
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
@@ -321,7 +400,12 @@ function List({ label, items }: { label: string; items: string[] }) {
 
 function ExtLink({ href, label }: { href: string; label: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer noopener" className="underline hover:opacity-80">
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="underline hover:opacity-80"
+    >
       {label}
     </a>
   );
@@ -351,52 +435,77 @@ function Td({
   return <td className={`py-2 pr-3 ${className}`}>{children}</td>;
 }
 
-// ----------------------------- Example usage ------------------------------
-// Quick dev page without wiring data fetching yet (aligns to your types):
-/*
-import ProjectTextProbe, { Project } from './ProjectTextProbe';
+/* ----------------------------- Example usage ------------------------------
+   Quick dev page without wiring data fetching yet (aligns to your types):
+
+import ProjectTextProbe from "./ProjectTextProbe";
+import { Project } from "@/lib/types/project";
 
 const mock: Project = {
   general: {
-    id: 'proj-1',
-    title: 'Acme Platform Revamp',
-    slug: 'acme-platform-revamp',
+    id: "proj-1",
+    title: "Acme Platform Revamp",
+    slug: "acme-platform-revamp",
     year: 2025,
-    tags: ['design', 'frontend'],
-    industry: 'B2B SaaS',
-    heroUrl: 'https://cdn.example.com/hero.jpg',
-    quotes: ['Make it simple, make it scale.', 'Systems that look good and behave well.'],
+    tags: ["design", "frontend"],
+    industry: "B2B SaaS",
+    heroUrl: "https://cdn.example.com/hero.jpg",
+    quotes: [
+      "Make it simple, make it scale.",
+      "Systems that look good and behave well.",
+    ],
     published: true,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   },
   main: {
-    brief: 'A modular redesign with an emphasis on velocity & UX.',
+    brief: "A modular redesign with an emphasis on velocity & UX.",
     gallery: [
-      // Shape of MediaItem comes from ./common. Examples below use a generic shape.
-      { type: 'image', url: 'https://cdn.example.com/1400x700.jpg', alt: 'Hero', dimensions: { w: 1400, h: 700 } } as any,
-      { type: 'image', url: 'https://cdn.example.com/700x700.jpg', alt: 'Square', dimensions: { w: 700, h: 700 } } as any,
-      { type: 'video', url: 'https://cdn.example.com/demo.mp4', alt: 'Demo' } as any,
+      {
+        type: "image",
+        url: "https://cdn.example.com/1400x700.jpg",
+        alt: "Hero",
+        dimensions: { w: 1400, h: 700 },
+      } satisfies MediaItem,
+      {
+        type: "image",
+        url: "https://cdn.example.com/700x700.jpg",
+        alt: "Square",
+        dimensions: { w: 700, h: 700 },
+      } satisfies MediaItem,
+      {
+        type: "video",
+        url: "https://cdn.example.com/demo.mp4",
+        alt: "Demo",
+      } satisfies MediaItem,
     ],
     details: {
-      client: 'Acme Co.',
-      sector: 'B2B SaaS',
-      discipline: ['Design', 'Frontend'],
-      tagline: 'From monolith to modules.',
-      summary: 'We refactored the UI layer and shipped a scalable design system.',
-      team: [{ name: 'Jane Doe', role: 'Design' }, { name: 'John Smith', role: 'FE' }],
-      services: ['UX', 'UI', 'Frontend'],
-      deliverables: ['Design System', 'Docs', 'Component Library'],
-      timeline: { start: 'Jan 2025', end: 'Apr 2025' },
-      location: 'Remote',
-      links: { liveSite: 'https://example.com' },
+      client: "Acme Co.",
+      sector: "B2B SaaS",
+      discipline: ["Design", "Frontend"],
+      tagline: "From monolith to modules.",
+      summary:
+        "We refactored the UI layer and shipped a scalable design system.",
+      team: [
+        { name: "Jane Doe", role: "Design" },
+        { name: "John Smith", role: "FE" },
+      ],
+      services: ["UX", "UI", "Frontend"],
+      deliverables: ["Design System", "Docs", "Component Library"],
+      timeline: { start: "Jan 2025", end: "Apr 2025" },
+      location: "Remote",
+      links: { liveSite: "https://example.com" },
     },
   },
   extra: {
     blocks: [
-      { id: 'b1', type: 'heading', level: 2, text: 'Approach' },
-      { id: 'b2', type: 'paragraph', text: 'We started with research and audits.' },
-      { id: 'b3', type: 'list', items: ['Audit', 'Design system', 'Implementation'] },
+      { id: "b1", type: "heading", level: 2, text: "Approach" },
+      { id: "b2", type: "paragraph", text: "We started with research and audits." },
+      {
+        id: "b3",
+        type: "list",
+        items: ["Audit", "Design system", "Implementation"],
+      },
     ],
   },
 };
@@ -404,4 +513,4 @@ const mock: Project = {
 export default function Page() {
   return <ProjectTextProbe project={mock} />;
 }
-*/
+-------------------------------------------------------------------------- */
