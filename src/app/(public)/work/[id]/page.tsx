@@ -33,9 +33,18 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params; // ✅ await the promise
+  // Resolve params + base in parallel
+  const [{ id }, base] = await Promise.all([params, getBaseUrl()]);
+  const origin = base.replace(/\/+$/, "");
+  const metadataBase = new URL(origin);
+
   const project = await getProject(id);
-  if (!project) return { title: "Project not found" };
+  if (!project) {
+    return {
+      metadataBase,
+      title: "Project not found",
+    };
+  }
 
   const p = project as Project;
   const titleBase = p?.general?.title ?? "Project";
@@ -43,29 +52,45 @@ export async function generateMetadata({
   const title = `${titleBase}${year}`;
   const description =
     p?.main?.brief ?? p?.main?.details?.tagline ?? "Project case study";
-  const image = p?.general?.heroUrl;
+
+  // Make hero URL absolute if needed
+  const rawImage = p?.general?.heroUrl;
+  const ogImage =
+    rawImage && /^https?:\/\//i.test(rawImage)
+      ? rawImage
+      : rawImage
+      ? `${origin}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`
+      : undefined;
 
   return {
+    metadataBase,
     title,
     description,
     openGraph: {
       title,
       description,
-      images: image ? [{ url: image }] : undefined,
+      url: `/work/${id}`,
+      images: ogImage ? [{ url: ogImage }] : undefined,
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
+      images: ogImage ? [ogImage] : undefined,
+    },
+    alternates: {
+      canonical: `/work/${id}`,
     },
   };
 }
 
-export default async function ProjectPage(
-  { params }: { params: Promise<{ id: string }> } // ✅ promised params
-) {
-  const { id } = await params; // ✅ await it
+export default async function ProjectPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
   return <ProjectViewer project={project} />;

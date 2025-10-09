@@ -1,104 +1,62 @@
-// Text-only project probe — minimal, fast, best-practice (RSC-friendly)
-// Now includes gallery *metadata* (no images) to validate data load & shapes.
-// No client directives, no animations, semantic HTML.
+// Project Text Probe — minimal, fast, best-practice (RSC-friendly)
+// Uses your canonical Project typing and MediaItem import.
+// Renders text-only + gallery *metadata* (no images/videos) to validate data load.
 
-// ---------- Lightweight types (replace with your own if desired) ----------
-type LinkSet = Partial<{
-  behance: string;
-  caseStudy: string;
-  liveSite: string;
-  repo: string;
-}>;
-
-type Timeline =
-  | { label: string }
-  | { start: string; end?: string };
-
-type TeamMember = { name: string; role: string };
-
-type MediaItemBase = {
-  type: 'image' | 'video';
-  url: string;
-  alt?: string;
-};
-
-type MediaItemWithDims = MediaItemBase & {
-  dimensions?: { w: number; h: number };
-  span2?: boolean; // hint from your original grid logic
-};
-
-type Details = {
-  client?: string;
-  sector?: string;
-  discipline?: string[];
-  tagline?: string;
-  summary?: string;
-  services?: string[];
-  deliverables?: string[];
-  team?: TeamMember[];
-  timeline?: Timeline;
-  location?: string;
-  links?: LinkSet;
-};
-
-type Project = {
-  general: {
-    title: string;
-    year: string | number;
-    quotes?: string[];
-  };
-  main: {
-    brief?: string;
-    details: Details;
-    gallery?: MediaItemWithDims[]; // <-- included now
-  };
-  extra?: {
-    blocks?: Array<{ type?: string; text?: string }>;
-  };
-};
+import { MediaItem } from "@/lib/types/common";
+import { HeadingBlock, ListBlock, ParagraphBlock, Project, ProjectTimeline, QuoteBlock } from "@/lib/types/project";
 
 // ---------------------------- Utility helpers -----------------------------
 const nonEmpty = (v: unknown) =>
-  Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && String(v).trim() !== '';
+  Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && String(v).trim() !== "";
 
-function safeJoin(list?: string[], sep = ' / ') {
+function safeJoin(list?: string[], sep = " / ") {
   return Array.isArray(list) && list.length ? list.join(sep) : undefined;
 }
 
-function timelineToText(t?: Timeline): string | undefined {
+function timelineToText(t?: ProjectTimeline): string | undefined {
   if (!t) return undefined;
-  if ('label' in t) return t.label;
-  return `${t.start}${t.end ? ` → ${t.end}` : ''}`;
+  if ("label" in t) return t.label;
+  return `${t.start}${t.end ? ` → ${t.end}` : ""}`;
 }
 
 function fileNameFromUrl(url: string) {
   try {
     const u = new URL(url);
-    const last = u.pathname.split('/').filter(Boolean).pop();
+    const last = u.pathname.split("/").filter(Boolean).pop();
     return last ?? url;
   } catch {
-    const parts = url.split('?')[0].split('#')[0].split('/');
+    const parts = url.split("?")[0].split("#")[0].split("/");
     return parts.pop() || url;
   }
 }
 
-function inferAspect(item: MediaItemWithDims): { kind: 'square' | 'wide'; ratio?: number } {
-  const w = item.dimensions?.w;
-  const h = item.dimensions?.h;
-  if (w && h) {
-    const ratio = w / h;
-    if (Math.abs(ratio - 1) < 0.1) return { kind: 'square', ratio };
-    return { kind: ratio >= 1.8 ? 'wide' : 'square', ratio };
+// Try to read dimensions from several common shapes without assuming a specific schema
+function getDims(item: MediaItem): { w?: number; h?: number } | undefined {
+  const anyItem = item as any;
+  if (anyItem?.dimensions && typeof anyItem.dimensions.w === "number") return anyItem.dimensions;
+  if (typeof anyItem?.width === "number" && typeof anyItem?.height === "number")
+    return { w: anyItem.width, h: anyItem.height };
+  return undefined;
+}
+
+function inferAspect(item: MediaItem): { kind: "square" | "wide"; ratio?: number } {
+  const dims = getDims(item);
+  if (dims?.w && dims?.h) {
+    const ratio = dims.w / dims.h;
+    if (Math.abs(ratio - 1) < 0.1) return { kind: "square", ratio };
+    return { kind: ratio >= 1.8 ? "wide" : "square", ratio };
   }
-  return { kind: item.type === 'video' ? 'wide' : 'square' };
+  // Fall back: treat videos as wide, images as square
+  const t = (item as any).type as string | undefined;
+  return { kind: t === "video" ? "wide" : "square" };
 }
 
 // ----------------------------- Page component -----------------------------
 export default function ProjectTextProbe({ project }: { project: Project }) {
-  const q0 = project.general.quotes?.[0] ?? 'Make it simple, make it scale.';
-  const q1 = project.general.quotes?.[1] ?? 'Systems that look good and behave well.';
+  const q0 = project.general.quotes?.[0] ?? "Make it simple, make it scale.";
+  const q1 = project.general.quotes?.[1] ?? "Systems that look good and behave well.";
 
-  const d = (project.main.details ?? {}) as Details;
+  const d = project.main.details;
   const gallery = Array.isArray(project.main.gallery) ? project.main.gallery : [];
 
   const sections: Array<{
@@ -107,12 +65,12 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
     content: React.ReactNode;
   }> = [
     {
-      id: 'overview',
-      label: 'Overview',
+      id: "overview",
+      label: "Overview",
       content: (
         <div className="space-y-3">
-          {nonEmpty(d.client) && <Detail label="Client" value={d.client!} />}
-          {nonEmpty(d.sector) && <Detail label="Sector" value={d.sector!} />}
+          {nonEmpty(d.client) && <Detail label="Client" value={d.client} />}
+          {nonEmpty(d.sector) && <Detail label="Sector" value={d.sector} />}
           {nonEmpty(d.discipline) && (
             <Detail label="Discipline" value={safeJoin(d.discipline)!} />
           )}
@@ -127,8 +85,8 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
       ),
     },
     {
-      id: 'scope',
-      label: 'Scope',
+      id: "scope",
+      label: "Scope",
       content: (
         <div className="space-y-3">
           {Array.isArray(d.services) && d.services.length > 0 && (
@@ -154,8 +112,8 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
       ),
     },
     {
-      id: 'meta',
-      label: 'Meta',
+      id: "meta",
+      label: "Meta",
       content: (
         <div className="space-y-3">
           {nonEmpty(d.timeline) && (
@@ -166,26 +124,10 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
             <div>
               <SectionLabel>Links</SectionLabel>
               <ul className="list-disc pl-5 space-y-1">
-                {d.links.behance && (
-                  <li>
-                    <ExtLink href={d.links.behance} label="Behance" />
-                  </li>
-                )}
-                {d.links.caseStudy && (
-                  <li>
-                    <ExtLink href={d.links.caseStudy} label="Case Study" />
-                  </li>
-                )}
-                {d.links.liveSite && (
-                  <li>
-                    <ExtLink href={d.links.liveSite} label="Live Site" />
-                  </li>
-                )}
-                {d.links.repo && (
-                  <li>
-                    <ExtLink href={d.links.repo} label="Repo" />
-                  </li>
-                )}
+                {d.links.behance && <li><ExtLink href={d.links.behance} label="Behance" /></li>}
+                {d.links.caseStudy && <li><ExtLink href={d.links.caseStudy} label="Case Study" /></li>}
+                {d.links.liveSite && <li><ExtLink href={d.links.liveSite} label="Live Site" /></li>}
+                {d.links.repo && <li><ExtLink href={d.links.repo} label="Repo" /></li>}
               </ul>
             </div>
           )}
@@ -193,16 +135,50 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
       ),
     },
     {
-      id: 'story',
-      label: 'Story',
+      id: "story",
+      label: "Story",
       content: (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {project.extra?.blocks?.length ? (
-            project.extra.blocks.map((b, i) => (
-              <p key={i} className="leading-relaxed">
-                {b.text ?? ''}
-              </p>
-            ))
+            project.extra.blocks.map((b) => {
+              switch (b.type) {
+                case "heading":
+                  return (
+                    <p key={b.id} className="font-semibold">
+                      {(b as HeadingBlock).text}
+                    </p>
+                  );
+                case "quote":
+                  return (
+                    <blockquote key={b.id} className="border-l-2 pl-3 italic opacity-90">
+                      {(b as QuoteBlock).text}
+                    </blockquote>
+                  );
+                case "list":
+                  return (
+                    <ul key={b.id} className="list-disc pl-5 space-y-1">
+                      {(b as ListBlock).items.map((it, i) => (
+                        <li key={`${b.id}-${i}`}>{it}</li>
+                      ))}
+                    </ul>
+                  );
+                case "paragraph":
+                  return (
+                    <p key={b.id} className="leading-relaxed">
+                      {(b as ParagraphBlock).text}
+                    </p>
+                  );
+                case "image":
+                case "video":
+                case "grid":
+                  // Metadata-only representation for media blocks
+                  return (
+                    <p key={b.id} className="text-sm opacity-70">
+                      [Media block: {b.type}]
+                    </p>
+                  );
+              }
+            })
           ) : (
             <div className="opacity-60">No story provided.</div>
           )}
@@ -210,8 +186,8 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
       ),
     },
     {
-      id: 'gallery-meta',
-      label: 'Gallery (metadata only)',
+      id: "gallery-meta",
+      label: "Gallery (metadata only)",
       content: (
         <div className="space-y-4">
           <Detail label="Items" value={`${gallery.length}`} />
@@ -227,33 +203,32 @@ export default function ProjectTextProbe({ project }: { project: Project }) {
                     <Th>Alt</Th>
                     <Th>Dimensions</Th>
                     <Th>Ratio</Th>
-                    <Th>Inferred</Th>
-                    <Th>span2</Th>
                     <Th>URL</Th>
                   </tr>
                 </thead>
                 <tbody>
                   {gallery.map((item, idx) => {
                     const aspect = inferAspect(item);
-                    const dims = item.dimensions
-                      ? `${item.dimensions.w}×${item.dimensions.h}`
-                      : '—';
-                    const ratioTxt =
-                      aspect.ratio !== undefined ? aspect.ratio.toFixed(3) : '—';
+                    const dims = getDims(item);
+                    const dimsTxt = dims?.w && dims?.h ? `${dims.w}×${dims.h}` : "—";
+                    const ratioTxt = aspect.ratio !== undefined ? aspect.ratio.toFixed(3) : "—";
+                    const kind = aspect.kind;
+                    const anyItem = item as any;
+                    const type = anyItem?.type ?? "image"; // fall back if MediaItem doesn't expose type
+                    const alt = anyItem?.alt ?? "—";
+                    const url = (anyItem?.url as string) ?? "";
                     return (
-                      <tr key={`${item.url}-${idx}`} className="border-b align-top">
+                      <tr key={`${url}-${idx}`} className="border-b align-top">
                         <Td>{idx + 1}</Td>
-                        <Td>{aspect.kind}</Td>
-                        <Td>{item.type}</Td>
-                        <Td className="font-medium break-all">{fileNameFromUrl(item.url)}</Td>
-                        <Td className="break-all max-w-[16rem]">{item.alt ?? '—'}</Td>
-                        <Td>{dims}</Td>
+                        <Td>{kind}</Td>
+                        <Td>{type}</Td>
+                        <Td className="font-medium break-all">{fileNameFromUrl(url)}</Td>
+                        <Td className="break-all max-w-[16rem]">{alt}</Td>
+                        <Td>{dimsTxt}</Td>
                         <Td>{ratioTxt}</Td>
-                        <Td>{aspect.kind}</Td>
-                        <Td>{item.span2 ? 'true' : 'false'}</Td>
                         <Td className="break-all max-w-[24rem]">
-                          <a href={item.url} className="underline" target="_blank" rel="noreferrer noopener">
-                            {item.url}
+                          <a href={url} className="underline" target="_blank" rel="noreferrer noopener">
+                            {url}
                           </a>
                         </Td>
                       </tr>
@@ -354,7 +329,7 @@ function ExtLink({ href, label }: { href: string; label: string }) {
 
 function Th({
   children,
-  className = '',
+  className = "",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -368,7 +343,7 @@ function Th({
 
 function Td({
   children,
-  className = '',
+  className = "",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -377,40 +352,53 @@ function Td({
 }
 
 // ----------------------------- Example usage ------------------------------
-// Quick dev page without wiring data fetching yet:
+// Quick dev page without wiring data fetching yet (aligns to your types):
 /*
-import ProjectTextProbe from './ProjectTextProbe';
+import ProjectTextProbe, { Project } from './ProjectTextProbe';
 
 const mock: Project = {
-  general: { title: 'Acme Platform Revamp', year: 2025, quotes: [
-    'Make it simple, make it scale.',
-    'Systems that look good and behave well.',
-  ] },
+  general: {
+    id: 'proj-1',
+    title: 'Acme Platform Revamp',
+    slug: 'acme-platform-revamp',
+    year: 2025,
+    tags: ['design', 'frontend'],
+    industry: 'B2B SaaS',
+    heroUrl: 'https://cdn.example.com/hero.jpg',
+    quotes: ['Make it simple, make it scale.', 'Systems that look good and behave well.'],
+    published: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
   main: {
-    brief: 'A modular redesign of the Acme platform with an emphasis on velocity & UX.',
+    brief: 'A modular redesign with an emphasis on velocity & UX.',
+    gallery: [
+      // Shape of MediaItem comes from ./common. Examples below use a generic shape.
+      { type: 'image', url: 'https://cdn.example.com/1400x700.jpg', alt: 'Hero', dimensions: { w: 1400, h: 700 } } as any,
+      { type: 'image', url: 'https://cdn.example.com/700x700.jpg', alt: 'Square', dimensions: { w: 700, h: 700 } } as any,
+      { type: 'video', url: 'https://cdn.example.com/demo.mp4', alt: 'Demo' } as any,
+    ],
     details: {
       client: 'Acme Co.',
       sector: 'B2B SaaS',
       discipline: ['Design', 'Frontend'],
       tagline: 'From monolith to modules.',
       summary: 'We refactored the UI layer and shipped a scalable design system.',
+      team: [{ name: 'Jane Doe', role: 'Design' }, { name: 'John Smith', role: 'FE' }],
       services: ['UX', 'UI', 'Frontend'],
       deliverables: ['Design System', 'Docs', 'Component Library'],
-      team: [
-        { name: 'Jane Doe', role: 'Design' },
-        { name: 'John Smith', role: 'FE' },
-      ],
       timeline: { start: 'Jan 2025', end: 'Apr 2025' },
       location: 'Remote',
       links: { liveSite: 'https://example.com' },
     },
-    gallery: [
-      { type: 'image', url: 'https://cdn.example.com/hero-1400x700.jpg', alt: 'Hero', dimensions: { w: 1400, h: 700 } },
-      { type: 'image', url: 'https://cdn.example.com/square-700.jpg', alt: 'Square', dimensions: { w: 700, h: 700 }, span2: true },
-      { type: 'video', url: 'https://cdn.example.com/demo.mp4', alt: 'Demo video' },
+  },
+  extra: {
+    blocks: [
+      { id: 'b1', type: 'heading', level: 2, text: 'Approach' },
+      { id: 'b2', type: 'paragraph', text: 'We started with research and audits.' },
+      { id: 'b3', type: 'list', items: ['Audit', 'Design system', 'Implementation'] },
     ],
   },
-  extra: { blocks: [{ text: 'We started with research and audits.' }, { text: 'Then we iterated.' }] },
 };
 
 export default function Page() {
