@@ -33,48 +33,48 @@ export async function generateStaticParams() {
 }
 
 /** ✅ Per-project SEO */
-export async function generateMetadata(
-  { params }: { params: Promise<{ id: string }> } // 👈 Promise
-): Promise<Metadata> {
-  const { id } = await params;
-  const project = await getProject(id);
-  if (!project) {
-    return { title: "Project not found" };
-  }
+// export async function generateMetadata(
+//   { params }: { params: Promise<{ id: string }> } // 👈 Promise
+// ): Promise<Metadata> {
+//   const { id } = await params;
+//   const project = await getProject(id);
+//   if (!project) {
+//     return { title: "Project not found" };
+//   }
 
-  // Adjust these to your Project shape if different
-  const titleBase = (project as any)?.general?.title ?? "Project";
-  const year = (project as any)?.general?.year
-    ? ` — ${(project as any).general.year}`
-    : "";
-  const title = `${titleBase}${year}`;
+//   // Adjust these to your Project shape if different
+//   const titleBase = (project as any)?.general?.title ?? "Project";
+//   const year = (project as any)?.general?.year
+//     ? ` — ${(project as any).general.year}`
+//     : "";
+//   const title = `${titleBase}${year}`;
 
-  const description =
-    (project as any)?.general?.brief ??
-    (project as any)?.general?.tagline ??
-    "Project case study";
+//   const description =
+//     (project as any)?.general?.brief ??
+//     (project as any)?.general?.tagline ??
+//     "Project case study";
 
-  const image =
-    (project as any)?.general?.cover ??
-    (project as any)?.cover ??
-    (project as any)?.gallery?.[0]?.url;
+//   const image =
+//     (project as any)?.general?.cover ??
+//     (project as any)?.cover ??
+//     (project as any)?.gallery?.[0]?.url;
 
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      images: image ? [{ url: image }] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: image ? [image] : undefined,
-    },
-  };
-}
+//   return {
+//     title,
+//     description,
+//     openGraph: {
+//       title,
+//       description,
+//       images: image ? [{ url: image }] : undefined,
+//     },
+//     twitter: {
+//       card: "summary_large_image",
+//       title,
+//       description,
+//       images: image ? [image] : undefined,
+//     },
+//   };
+// }
 
 export default async function ProjectPage({
   params,
