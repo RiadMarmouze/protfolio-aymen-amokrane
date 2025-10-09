@@ -294,6 +294,7 @@ function ProjectTextProbe({ project }: { project: Project }) {
     <main className="mx-auto max-w-4xl px-4 py-10">
       <header className="mb-8">
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          {project.general.id} 
           {project.general.title} <span className="opacity-60">— {project.general.year}</span>
         </h1>
         {nonEmpty(project.main.brief) && <p className="mt-3 text-base leading-relaxed">{project.main.brief}</p>}
@@ -367,10 +368,10 @@ function Td({ children, className = "" }: { children: React.ReactNode; className
 }
 
 // --------------------------- Example Page ---------------------------
-export default function Page() {
+export default function Page(id:string) {
   const mock: Project = {
     general: {
-      id: "proj-1",
+      id: id,
       title: "Acme Platform Revamp",
       slug: "acme-platform-revamp",
       year: 2025,
