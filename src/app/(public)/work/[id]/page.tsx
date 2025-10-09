@@ -1,5 +1,5 @@
 // import type { Metadata } from "next"; // ✅ add
-// import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 import type { Project } from "@/lib/types/project";
 import ProjectViewer from "./ProjectViewer.client";
@@ -84,6 +84,6 @@ export default async function ProjectPage({
   const { id } = await params;
   const project = await getProject(id);
   console.log(project)
-  // if (!project) notFound();
-  return <ProjectViewer id={id}/>;
+  if (!project) notFound();
+  return <ProjectViewer project={project}/>;
 }
