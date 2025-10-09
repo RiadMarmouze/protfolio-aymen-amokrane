@@ -92,12 +92,11 @@ export default async function ProjectPage({
   params: { id: string };
 }) {
   const { id } = await params; // 👈 await it
-  const [project, related] = await Promise.all([
-    getProject(id),
-    getRelatedProjects(id, 6),
+  const [project] = await Promise.all([
+    getProject(id)
   ]);
   console.log(id)
   if (!project) notFound();
 
-  return <ProjectViewer project={project} related={related} />;
+  return <ProjectViewer project={project}  />;
 }
