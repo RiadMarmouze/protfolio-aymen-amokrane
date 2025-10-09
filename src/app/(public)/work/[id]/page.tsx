@@ -20,16 +20,6 @@ async function getProject(id: string) {
   return data.item;
 }
 
-async function getRelatedProjects(id: string, limit = 6) {
-  const base = await getBaseUrl();
-  const res = await fetch(
-    `${base}/api/public/work?relatedTo=${id}&limit=${limit}`,
-    { next: { revalidate } }
-  );
-  if (!res.ok) return [] as Project[];
-  const data = (await res.json()) as { items: Project[] };
-  return data.items ?? [];
-}
 
 /** ✅ Prebuild known ids (SSG/ISR) while still allowing runtime fallback */
 export async function generateStaticParams() {
