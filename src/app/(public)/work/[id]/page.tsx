@@ -28,7 +28,6 @@ export async function generateStaticParams() {
   return (data.items ?? []).map(({ id }) => ({ id }));
 }
 
-/** Next 15+ promised params */
 export async function generateMetadata({
   params,
 }: {
