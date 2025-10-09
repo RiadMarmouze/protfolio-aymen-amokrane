@@ -11,6 +11,39 @@ import {
 } from "@/data/contact";
 
 // ----------------------
+// Types matching the API schema (client-side)
+// ----------------------
+type OfferKind = "collab" | "job";
+
+type OfferPayloadBase = {
+  kind: OfferKind;
+  name: string;
+  email: string;
+  projectName: string;
+  industry: string;
+  budget: string;
+  timeline: string;
+  country: string;
+  projectType: string;
+  brief: string;
+};
+
+type CollabPayload = OfferPayloadBase & {
+  kind: "collab";
+  priorityKey?: "cafe" | "esports" | "fintech" | "event" | "logistics";
+};
+
+type JobPayload = OfferPayloadBase & {
+  kind: "job";
+  priorityKey?: never;
+};
+
+type OfferPayload = CollabPayload | JobPayload;
+
+type ApiOk = { id: string; status: "ok" };
+type ApiErr = { error: string } | { error: string; issues?: unknown };
+
+// ----------------------
 // Styles
 // ----------------------
 const BORDER = "border-2 border-black";
@@ -20,14 +53,29 @@ const PILL = `${BORDER} rounded-full`;
 // ----------------------
 // Helpers
 // ----------------------
-async function postOffer(payload: any) {
+async function postOffer(payload: OfferPayload): Promise<ApiOk> {
   const res = await fetch("/api/public/contact", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Failed to submit");
-  return res.json();
+  const json = (await res.json()) as ApiOk | ApiErr;
+
+  if (!res.ok || "error" in json) {
+    const message =
+      "error" in json
+        ? typeof json.error === "string"
+          ? json.error
+          : "Invalid payload"
+        : "Failed to submit";
+    throw new Error(message);
+  }
+  return json;
+}
+
+function getStr(fd: FormData, key: string): string {
+  const v = fd.get(key);
+  return typeof v === "string" ? v : "";
 }
 
 // ----------------------
@@ -59,6 +107,7 @@ function Modal({
           <button
             onClick={onClose}
             className={`${PILL} px-2 py-1 border-white`}
+            aria-label="Close"
           >
             <X size={16} />
           </button>
@@ -87,6 +136,7 @@ function PillTab({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`${PILL} text-center transition hover:bg-black hover:text-white w-64 h-24 flex flex-col items-center justify-center`}
     >
@@ -116,7 +166,7 @@ function PriorityTabs({ onOpen }: { onOpen: (k: PriorityKey) => void }) {
 }
 
 // ----------------------
-// Collab modal (only name/email)
+// Collab modal (collects name/email; other fields come from REQUIREMENTS)
 // ----------------------
 function RequirementModal({
   open,
@@ -130,6 +180,7 @@ function RequirementModal({
     () => PRIORITY.find((p) => p.key === open)?.label ?? "",
     [open]
   );
+
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(
     null
@@ -143,56 +194,50 @@ function RequirementModal({
     e.preventDefault();
     setMsg(null);
 
-    const formEl = e.currentTarget; // capture before await
+    const formEl = e.currentTarget;
     const form = new FormData(formEl);
 
-    const name = String(form.get("name") || "");
-    const email = String(form.get("email") || "");
-    if (!name || !email || !open) {
+    const name = getStr(form, "name").trim();
+    const email = getStr(form, "email").trim();
+    if (!name || !email) {
       setMsg({ type: "err", text: "Please add your name and email." });
       return;
     }
 
-    const projectName =
-      PRIORITY.find((p) => p.key === open)?.label ?? "Priority Project";
-    const req = REQUIREMENTS[open];
-
-    const payload = {
-      kind: "collab" as const,
-      priorityKey: open,
-      // same keys as job offer:
+    // Map REQUIREMENTS to all required schema fields
+    const payload: CollabPayload = {
+      kind: "collab",
+      priorityKey: (open as CollabPayload["priorityKey"]) ?? undefined,
       name,
       email,
-      projectName,
-      industry: req.industryDefault,
-      budget: req.budget,
-      timeline: req.timeline,
-      country: req.country,
-      projectType: req.projectTypeDefault,
-      brief: req.scope,
-      // optional helpful context:
-      requirementSnapshot: {
-        timeline: req.timeline,
-        budget: req.budget,
-        country: req.country,
-        scope: req.scope,
-        industryDefault: req.industryDefault,
-        projectTypeDefault: req.projectTypeDefault,
-      },
+      projectName:
+        PRIORITY.find((p) => p.key === open)?.label ?? "Priority Project",
+      industry: data?.industryDefault || "General",
+      projectType: data?.projectTypeDefault || "Branding",
+
+      // ↓ guarantee strings
+      budget: data?.budget ?? "TBD",
+      timeline: data?.timeline ?? "TBD",
+      country: data?.country ?? "TBD",
+      brief: data?.scope ?? "",
     };
 
     try {
       setLoading(true);
       await postOffer(payload);
-      setLoading(false);
       setMsg({
         type: "ok",
         text: "Thanks! Your collab request was submitted successfully.",
       });
-      formEl.reset(); // safe: using captured element
-    } catch {
+      formEl.reset();
+    } catch (err) {
+      const text =
+        err instanceof Error
+          ? err.message
+          : "Failed to submit. Please try again.";
+      setMsg({ type: "err", text });
+    } finally {
       setLoading(false);
-      setMsg({ type: "err", text: "Failed to submit. Please try again." });
     }
   }
 
@@ -211,7 +256,12 @@ function RequirementModal({
       <form className="grid md:grid-cols-2 gap-3 mt-3" onSubmit={onSubmit}>
         <label className="grid gap-1">
           <span className="text-xs uppercase opacity-70">Name</span>
-          <Input name="name" className={fieldInput} placeholder="Full name" />
+          <Input
+            name="name"
+            className={fieldInput}
+            placeholder="Full name"
+            required
+          />
         </label>
         <label className="grid gap-1">
           <span className="text-xs uppercase opacity-70">Email</span>
@@ -220,6 +270,7 @@ function RequirementModal({
             className={fieldInput}
             placeholder="name@email.com"
             type="email"
+            required
           />
         </label>
 
@@ -257,7 +308,7 @@ function RequirementModal({
 }
 
 // ----------------------
-// Job Inquiry (same as before)
+// Job Inquiry (all required to satisfy schema)
 // ----------------------
 function InquiryForm() {
   const fieldInput = `${CARD} px-3 py-2 w-full`;
@@ -275,31 +326,35 @@ function InquiryForm() {
     setMsg(null);
     const form = new FormData(formEl);
 
-    const payload = {
+    const payload: JobPayload = {
       kind: "job",
-      name: String(form.get("name") || ""),
-      email: String(form.get("email") || ""),
-      projectName: String(form.get("projectName") || ""),
-      industry: String(form.get("industry") || ""),
-      budget: String(form.get("budget") || ""),
-      timeline: String(form.get("timeline") || ""),
-      country: String(form.get("country") || ""),
-      projectType: String(form.get("projectType") || ""),
-      brief: String(form.get("brief") || ""),
+      name: getStr(form, "name").trim(),
+      email: getStr(form, "email").trim(),
+      projectName: getStr(form, "projectName").trim(),
+      industry: getStr(form, "industry").trim(),
+      budget: getStr(form, "budget").trim(),
+      timeline: getStr(form, "timeline").trim(),
+      country: getStr(form, "country").trim(),
+      projectType: getStr(form, "projectType").trim(),
+      brief: getStr(form, "brief").trim(),
     };
 
     try {
       setLoading(true);
       await postOffer(payload);
-      setLoading(false);
       setMsg({
         type: "ok",
         text: "Thanks! Your job offer was submitted successfully.",
       });
       formEl.reset();
-    } catch {
+    } catch (err) {
+      const text =
+        err instanceof Error
+          ? err.message
+          : "Failed to submit. Please try again.";
+      setMsg({ type: "err", text });
+    } finally {
       setLoading(false);
-      setMsg({ type: "err", text: "Failed to submit. Please try again." });
     }
   }
 
@@ -338,34 +393,55 @@ function InquiryForm() {
           className={fieldInput}
           placeholder="e.g., Beauty / F&B"
           name="industry"
+          required
         />
       </Field>
       <Field label="Budget (USD)">
-        <Select className={fieldSelect} name="budget">
-          <option>5k-8k</option>
-          <option>8k-12k</option>
-          <option>12k-20k</option>
-          <option>20k+</option>
+        <Select
+          className={fieldSelect}
+          name="budget"
+          defaultValue="5k-8k"
+          required
+        >
+          <option value="5k-8k">5k-8k</option>
+          <option value="8k-12k">8k-12k</option>
+          <option value="12k-20k">12k-20k</option>
+          <option value="20k+">20k+</option>
         </Select>
       </Field>
       <Field label="Timeline">
-        <Select className={fieldSelect} name="timeline">
-          <option>4-6 weeks</option>
-          <option>6-8 weeks</option>
-          <option>8-12 weeks</option>
-          <option>Flexible</option>
+        <Select
+          className={fieldSelect}
+          name="timeline"
+          defaultValue="4-6 weeks"
+          required
+        >
+          <option value="4-6 weeks">4-6 weeks</option>
+          <option value="6-8 weeks">6-8 weeks</option>
+          <option value="8-12 weeks">8-12 weeks</option>
+          <option value="Flexible">Flexible</option>
         </Select>
       </Field>
       <Field label="Country">
-        <Input className={fieldInput} placeholder="e.g., UAE" name="country" />
+        <Input
+          className={fieldInput}
+          placeholder="e.g., UAE"
+          name="country"
+          required
+        />
       </Field>
       <Field className="md:col-span-2" label="Project type">
-        <Select className={fieldSelect} name="projectType">
-          <option>Branding</option>
-          <option>Strategy</option>
-          <option>Illustration</option>
-          <option>Systems</option>
-          <option>Logos</option>
+        <Select
+          className={fieldSelect}
+          name="projectType"
+          defaultValue="Branding"
+          required
+        >
+          <option value="Branding">Branding</option>
+          <option value="Strategy">Strategy</option>
+          <option value="Illustration">Illustration</option>
+          <option value="Systems">Systems</option>
+          <option value="Logos">Logos</option>
         </Select>
       </Field>
       <Field className="md:col-span-2" label="Brief">
@@ -373,6 +449,7 @@ function InquiryForm() {
           className={fieldTextArea}
           placeholder="Give me a quick brief."
           name="brief"
+          required
         />
       </Field>
 
