@@ -368,7 +368,11 @@ function Td({ children, className = "" }: { children: React.ReactNode; className
 }
 
 // --------------------------- Example Page ---------------------------
-export default function Page(id:string) {
+export default function Page({
+  id,
+}: {
+  id: string;
+}) {
   const mock: Project = {
     general: {
       id: id,
