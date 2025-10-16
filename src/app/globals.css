@@ -1,9 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root {
-  --nav-h: 64px;
-}
 html,
 body {
   height: 100%;

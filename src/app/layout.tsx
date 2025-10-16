@@ -1,12 +1,26 @@
-// app/layout.tsx
-import type { Metadata } from "next";
 import "./globals.css";
+import type { Metadata } from "next";
+
+export const dynamic = "force-static";
+export const revalidate = false;
 
 export const metadata: Metadata = {
-  title: "Aymen Portfolio — We Doing",
-  description: "Black & White Halftone portfolio site",
+  title: "Stuff by Aymen",
+  description:
+    "New portfolio launching soon. Designer focused on strategy‑led brand systems. Open to project inquiries.",
+  openGraph: {
+    title: "Stuff by Aymen",
+    description:
+      "New portfolio launching soon. Designer focused on strategy‑led brand systems. Open to project inquiries.",
+    url: "https://www.stuffbyaymen.com/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Stuff by Aymen",
+    description:
+      "New portfolio launching soon. Designer focused on strategy‑led brand systems. Open to project inquiries.",
+  },
 };
-
 export default function RootLayout({
   children,
 }: {
@@ -16,8 +30,6 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-white text-black">
         {children}
-        {/* Shared halftone background overlay (keep only in root) */}
-        <div className="pointer-events-none fixed inset-0 opacity-[0.03] bg-[linear-gradient(transparent_23px,_#000_24px),linear-gradient(90deg,transparent_23px,_#000_24px)] bg-[size:24px_24px]" />
       </body>
     </html>
   );
