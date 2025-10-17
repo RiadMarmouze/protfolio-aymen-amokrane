@@ -1,62 +1,61 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep your existing webpack rule if you also run non-turbo builds
+  // Webpack (prod and when not using Turbopack)
   webpack(config) {
+    // If you ever need file-URL imports: import iconUrl from './icon.svg?url'
     config.module.rules.push({
       test: /\.svg$/i,
-      resourceQuery: /url/, // allow `import icon from './icon.svg?url'`
-      type: 'asset',        // let Next handle it as a file
+      resourceQuery: /url/,
+      type: "asset",
     });
 
-    // SVGR for non-`?url` imports in webpack builds
+    // Default: import Icon from './icon.svg' -> React component via SVGR
     config.module.rules.push({
       test: /\.svg$/i,
       issuer: /\.[jt]sx?$/,
       resourceQuery: { not: [/url/] },
-      use: [{
-        loader: '@svgr/webpack',
-        options: {
-          icon: true,
-          // Force black strokes/fills to follow currentColor
-          replaceAttrValues: {
-            '#000': 'currentColor',
-            '#000000': 'currentColor',
-            'black': 'currentColor',
+      use: [
+        {
+          loader: "@svgr/webpack",
+          options: {
+            icon: true,
+            // Let Tailwind control color with `text-*`
+            replaceAttrValues: {
+              "#000": "currentColor",
+              "#000000": "currentColor",
+              black: "currentColor",
+            },
+            svgProps: { fill: "currentColor" }, // or { stroke: 'currentColor' } for outlines
           },
-          svgProps: { stroke: 'currentColor' }
-        }
-      }],
+        },
+      ],
     });
 
     return config;
   },
 
-  // Turbopack config (dev & Next 15+ builds)
+  // Turbopack (dev / Next 15+)
   turbopack: {
     rules: {
-      '*.svg': {
+      "*.svg": {
         loaders: [
           {
-            loader: '@svgr/webpack',
+            loader: "@svgr/webpack",
             options: {
               icon: true,
               replaceAttrValues: {
-                '#000': 'currentColor',
-                '#000000': 'currentColor',
-                'black': 'currentColor',
+                "#000": "currentColor",
+                "#000000": "currentColor",
+                black: "currentColor",
               },
-              svgProps: { stroke: 'currentColor' }
-            }
-          }
+              svgProps: { fill: "currentColor" },
+            },
+          },
         ],
-        as: '*.js',
+        as: "*.js",
       },
-      // Optional: also support `?url` imports under turbo
-      '*.svg?url': {
-        // no svgr -> treat as file url (handled natively)
-        // Leave this block empty; Turbopack will emit an asset URL.
-      }
+      // Optional: support ?url under turbo as asset URL (no extra config needed)
     },
   },
 };
