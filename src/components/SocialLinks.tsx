@@ -1,17 +1,29 @@
 import Link from "next/link";
-import { Instagram, Dribbble, Github, Linkedin } from "lucide-react";
+import InstagramIcon from "@/icons/social/instagram.svg";
+import BehanceIcon from "@/icons/social/behance.svg";
+import LinkedinIcon from "@/icons/social/linkedin.svg";
 
 export default function SocialLinks() {
-  // Replace href values with your real profiles and add rel for external links
   const links = [
-    { href: "https://instagram.com/yourhandle", label: "Instagram", Icon: Instagram },
-    { href: "https://dribbble.com/yourhandle", label: "Dribbble", Icon: Dribbble },
-    { href: "https://github.com/yourhandle", label: "GitHub", Icon: Github },
-    { href: "https://www.linkedin.com/in/yourhandle", label: "LinkedIn", Icon: Linkedin },
+    {
+      href: "http://instagram.com/aymen.doinstuff",
+      label: "Instagram",
+      Icon: InstagramIcon,
+    },
+    {
+      href: "http://behance.net/aymenamok",
+      label: "Behance",
+      Icon: BehanceIcon,
+    },
+    {
+      href: "https://www.linkedin.com/in/aymen-amokrane-72648a1a9/",
+      label: "LinkedIn",
+      Icon: LinkedinIcon,
+    },
   ];
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex justify-center items-center gap-4">
       {links.map(({ href, label, Icon }) => (
         <Link
           key={label}
@@ -19,9 +31,9 @@ export default function SocialLinks() {
           target="_blank"
           rel="noopener noreferrer me"
           aria-label={label}
-          className="flex p-2 md:p-3 justify-center items-center aspect-square rounded-full border border-white/30 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+          className="flex p-3 md:p-4 justify-center items-center aspect-square rounded-full border border-white/30 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200"
         >
-          <Icon size={16} aria-hidden />
+          <Icon className="w-6 h-6 fill-white stroke-none" />
         </Link>
       ))}
     </div>

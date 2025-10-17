@@ -67,9 +67,9 @@ export default function Page() {
       {/* Foreground with intro overlay */}
       <PageIntroTransition config={INTRO_CONFIG}>
         <main className="h-[100dvh] w-[100dvw] grid place-items-center overflow-hidden px-6 py-10 md:px-12">
-          <div className="flex flex-col items-center gap-8 md:gap-10 text-center max-w-[90vw] md:max-w-[600px]">
+          <div className="flex flex-col items-center gap-8 md:gap-20 text-center max-w-[90vw] md:max-w-[600px]">
             <Logo />
-            <div className="space-y-3 md:space-y-4">
+            {/* <div className="space-y-3 md:space-y-4">
               <p className="uppercase tracking-[0.35em] text-[10px] md:text-xs text-white/60">
                 Under construction
               </p>
@@ -79,7 +79,7 @@ export default function Page() {
               <p className="text-sm md:text-base text-white/70 leading-relaxed">
                 Design. Systems. Identity.
               </p>
-            </div>
+            </div> */}
             <div className="mt-4 md:mt-6">
               <SocialLinks />
             </div>

@@ -126,7 +126,7 @@ export default function Logo() {
         {/* BACKGROUND GLOW (moves with group) */}
         <motion.div
           aria-hidden
-          className="absolute -inset-16 md:-inset-24 rounded-[2.5rem] -z-10 blur-2xl"
+          className="absolute -inset-16 md:-inset-24 -z-10 blur-2xl"
           style={{
             background:
               "radial-gradient(65% 65% at 50% 50%, rgba(255,255,255,0.22) 0%, rgba(180,180,180,0.12) 40%, rgba(0,0,0,0) 70%)",
@@ -142,7 +142,7 @@ export default function Logo() {
           aria-hidden
           variants={borderVariants}
           animate="idle"
-          className="absolute -inset-[2px] rounded-3xl"
+          className="absolute -inset-[2px]"
           style={{
             background:
               "conic-gradient(from 0deg, #000 0%, #999 25%, #fff 50%, #999 75%, #000 100%)",
@@ -156,7 +156,7 @@ export default function Logo() {
 
         {/* CARD (content lives here, but no separate tilt — group handles it) */}
         <div
-          className="relative rounded-3xl bg-gradient-to-b from-neutral-900 to-neutral-800 p-3 md:p-4"
+          className="relative bg-gradient-to-b from-neutral-900 to-neutral-800 p-3 md:p-4"
           style={{
             boxShadow:
               "inset 0 0 0 1px rgba(255,255,255,0.08), 0 6px 18px rgba(0,0,0,0.35)",
@@ -165,7 +165,7 @@ export default function Logo() {
         >
           {/* LOGO IMAGE */}
           <div
-            className="relative overflow-hidden rounded-2xl bg-neutral-900 ring-1 ring-white/10"
+            className="relative overflow-hidden  bg-neutral-900 ring-1 ring-white/10"
             style={{ transform: "translateZ(1px)" }} // tiny parallax forward (optional)
           >
             <div className="absolute inset-0 mix-blend-luminosity pointer-events-none" />
@@ -212,7 +212,7 @@ export default function Logo() {
         {/* GLASS OVERLAY + OUTER RING (move with group) */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-3xl"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
               "linear-gradient(to bottom, rgba(255,255,255,0.22), rgba(255,255,255,0) 30%)",
@@ -221,7 +221,7 @@ export default function Logo() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-white/10"
+          className="pointer-events-none absolute inset-0 ring-1 ring-white/10"
         />
       </motion.div>
     </div>
