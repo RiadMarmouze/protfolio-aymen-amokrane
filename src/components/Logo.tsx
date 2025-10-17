@@ -10,44 +10,64 @@ import {
   type MotionValue,
 } from "framer-motion";
 import Image from "next/image";
-import { useRef, PointerEvent as ReactPointerEvent } from "react";
+import { useRef, useEffect } from "react";
 
-// Idle levitation for a touch of life
+// === CONFIG (EASY TO TWEAK) ===
+// Default responsive settings
+const CONFIG = {
+  image: {
+    width: { base: 220, md: 320, lg: 420 },
+    height: { base: 80, md: 120, lg: 160 },
+  },
+  margin: { base: 6, md: 8, lg: 12 },
+  borderWidth: { base: 1.5, md: 2, lg: 3 },
+};
+
+// === MOTION VARIANTS ===
 const levitateIdle = { y: [0, -3, 0, 3, 0] };
-
 const borderVariants: Variants = { idle: { rotate: 0 } };
 const shadowVariants: Variants = {
   idle: { opacity: 0.22, scaleX: 0.9, filter: "blur(6px)" },
 };
-
 const shineKeyframes = { x: ["-150%", "150%"] };
 const glowIdle = { scale: [1, 1.05, 1], opacity: [0.18, 0.32, 0.18] };
 
-export default function Logo() {
+// === COMPONENT ===
+export default function Logo({
+  imageConfig = CONFIG.image,
+  marginConfig = CONFIG.margin,
+  borderConfig = CONFIG.borderWidth,
+}: {
+  imageConfig?: typeof CONFIG.image;
+  marginConfig?: typeof CONFIG.margin;
+  borderConfig?: typeof CONFIG.borderWidth;
+}) {
   const reduceMotion = useReducedMotion();
-
-  // Pointer area
   const areaRef = useRef<HTMLDivElement>(null);
 
-  // Normalized pointer position in range [-0.5, 0.5]
+  // Motion values
   const mvX = useMotionValue<number>(0);
   const mvY = useMotionValue<number>(0);
 
-  // Group glide (whole block follows the mouse)
+  // Motion springs
   const MAX_OFFSET = 16;
-  const groupTx = useSpring(useTransform(mvX, [-0.5, 0.5], [-MAX_OFFSET, MAX_OFFSET]), {
-    stiffness: 160,
-    damping: 20,
-    mass: 0.4,
-  });
-  const groupTy = useSpring(useTransform(mvY, [-0.5, 0.5], [-MAX_OFFSET, MAX_OFFSET]), {
-    stiffness: 160,
-    damping: 20,
-    mass: 0.4,
-  });
-
-  // Pressed-from-behind tilt (applied to the whole group)
   const TILT = 10;
+  const groupTx = useSpring(
+    useTransform(mvX, [-0.5, 0.5], [-MAX_OFFSET, MAX_OFFSET]),
+    {
+      stiffness: 160,
+      damping: 20,
+      mass: 0.4,
+    }
+  );
+  const groupTy = useSpring(
+    useTransform(mvY, [-0.5, 0.5], [-MAX_OFFSET, MAX_OFFSET]),
+    {
+      stiffness: 160,
+      damping: 20,
+      mass: 0.4,
+    }
+  );
   const rotX = useSpring(useTransform(mvY, [-0.5, 0.5], [-TILT, TILT]), {
     stiffness: 220,
     damping: 20,
@@ -58,27 +78,25 @@ export default function Logo() {
     damping: 20,
     mass: 0.3,
   });
-
-  // Distance from center → slight push back (Z)
-  const dist: MotionValue<number> = useTransform(
-    [mvX, mvY] as MotionValue<number>[],
-    (v: number[]) => {
-      const x = v[0] ?? 0;
-      const y = v[1] ?? 0;
-      return Math.min(Math.hypot(x, y), Math.SQRT1_2); // cap for stability
+  const dist: MotionValue<number> = useTransform([mvX, mvY], (v: number[]) => {
+    const x = v[0] ?? 0;
+    const y = v[1] ?? 0;
+    return Math.min(Math.hypot(x, y), Math.SQRT1_2);
+  });
+  const translateZ = useSpring(
+    useTransform(dist, [0, Math.SQRT1_2], [0, -40]),
+    {
+      stiffness: 200,
+      damping: 22,
     }
   );
-  const translateZ = useSpring(useTransform(dist, [0, Math.SQRT1_2], [0, -40]), {
-    stiffness: 200,
-    damping: 22,
-  });
 
-  // Pointer mapping for the area
-  const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+  // Pointer handling
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!areaRef.current) return;
     const rect = areaRef.current.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width; // 0..1
-    const py = (e.clientY - rect.top) / rect.height; // 0..1
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
     const nx = Math.max(-0.5, Math.min(px - 0.5, 0.5));
     const ny = Math.max(-0.5, Math.min(py - 0.5, 0.5));
     mvX.set(nx);
@@ -89,32 +107,46 @@ export default function Logo() {
     mvY.set(0);
   };
 
+  // === Set CSS Variables for Responsiveness ===
+  useEffect(() => {
+    const root = document.documentElement;
+    const setVar = (name: string, values: Record<string, number>) => {
+      root.style.setProperty(`--${name}-base`, `${values.base}px`);
+      root.style.setProperty(`--${name}-md`, `${values.md}px`);
+      root.style.setProperty(`--${name}-lg`, `${values.lg}px`);
+    };
+    setVar("image-width", imageConfig.width);
+    setVar("image-height", imageConfig.height);
+    setVar("image-margin", marginConfig);
+    setVar("border-width", borderConfig);
+  }, [imageConfig, marginConfig, borderConfig]);
+
   return (
-    // Pointer area (sets perspective so 3D reads on the whole group)
     <div
       ref={areaRef}
       className="relative inline-block select-none"
-      style={{ perspective: 900, transformStyle: "preserve-3d", touchAction: "none" }}
+      style={{
+        perspective: 900,
+        transformStyle: "preserve-3d",
+        touchAction: "none",
+      }}
       onPointerMove={reduceMotion ? undefined : handlePointerMove}
       onPointerLeave={reduceMotion ? undefined : handlePointerLeave}
-      onPointerDown={(e) => (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)}
-      onPointerUp={(e) => (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId)}
     >
-      {/* === EVERYTHING MOVES IN COORDINATION INSIDE THIS GROUP === */}
       <motion.div
         className="relative will-change-transform"
         animate={reduceMotion ? undefined : levitateIdle}
         transition={
-          reduceMotion ? undefined : { duration: 3.2, ease: "easeInOut", repeat: Infinity }
+          reduceMotion
+            ? undefined
+            : { duration: 3.2, ease: "easeInOut", repeat: Infinity }
         }
         style={
           reduceMotion
             ? undefined
             : {
-                // group glide
                 translateX: groupTx,
                 translateY: groupTy,
-                // pressed tilt + z push
                 rotateX: rotX,
                 rotateY: rotY,
                 translateZ: translateZ,
@@ -123,7 +155,7 @@ export default function Logo() {
         }
         whileHover={reduceMotion ? undefined : { scale: 1.02 }}
       >
-        {/* BACKGROUND GLOW (moves with group) */}
+        {/* GLOW */}
         <motion.div
           aria-hidden
           className="absolute -inset-16 md:-inset-24 -z-10 blur-2xl"
@@ -133,52 +165,54 @@ export default function Logo() {
           }}
           animate={reduceMotion ? undefined : glowIdle}
           transition={
-            reduceMotion ? undefined : { duration: 3.0, ease: "easeInOut", repeat: Infinity }
+            reduceMotion
+              ? undefined
+              : { duration: 3.0, ease: "easeInOut", repeat: Infinity }
           }
         />
 
-        {/* BORDER (moves with group) */}
+        {/* BORDER */}
         <motion.div
           aria-hidden
           variants={borderVariants}
           animate="idle"
-          className="absolute -inset-[2px]"
+          className="absolute inset-0"
           style={{
+            padding: "var(--border-width-base)",
             background:
               "conic-gradient(from 0deg, #000 0%, #999 25%, #fff 50%, #999 75%, #000 100%)",
             WebkitMask:
               "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
             WebkitMaskComposite: "xor",
             maskComposite: "exclude",
-            padding: 2,
           }}
         />
 
-        {/* CARD (content lives here, but no separate tilt — group handles it) */}
+        {/* CARD */}
         <div
-          className="relative bg-gradient-to-b from-neutral-900 to-neutral-800 p-3 md:p-4"
+          className="relative bg-gradient-to-b from-neutral-900 to-neutral-800"
           style={{
+            padding: "var(--image-margin-base)",
             boxShadow:
               "inset 0 0 0 1px rgba(255,255,255,0.08), 0 6px 18px rgba(0,0,0,0.35)",
             transformStyle: "preserve-3d",
           }}
         >
-          {/* LOGO IMAGE */}
+          {/* IMAGE */}
           <div
-            className="relative overflow-hidden  bg-neutral-900 ring-1 ring-white/10"
-            style={{ transform: "translateZ(1px)" }} // tiny parallax forward (optional)
+            className="relative overflow-hidden bg-neutral-900 ring-1 ring-white/10"
+            style={{ transform: "translateZ(1px)" }}
           >
             <div className="absolute inset-0 mix-blend-luminosity pointer-events-none" />
             <Image
               src="/images/common/logo.jpg"
-              alt="Stuff by Aymen — Logo"
-              width={884}
-              height={343}
-              className="block w-40 md:w-56 h-auto grayscale contrast-125"
+              alt="Logo"
+              width={imageConfig.width.base}
+              height={imageConfig.height.base}
+              className="block h-auto grayscale contrast-125"
               priority
             />
 
-            {/* SHINE SWEEP */}
             {!reduceMotion && (
               <motion.div
                 aria-hidden
@@ -209,7 +243,7 @@ export default function Logo() {
           />
         </div>
 
-        {/* GLASS OVERLAY + OUTER RING (move with group) */}
+        {/* GLASS + OUTLINE */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -224,6 +258,26 @@ export default function Logo() {
           className="pointer-events-none absolute inset-0 ring-1 ring-white/10"
         />
       </motion.div>
+
+      {/* RESPONSIVE OVERRIDES */}
+      <style jsx>{`
+        @media (min-width: 768px) {
+          div[style*="--image-width"] {
+            --image-width-base: var(--image-width-md);
+            --image-height-base: var(--image-height-md);
+            --image-margin-base: var(--image-margin-md);
+            --border-width-base: var(--border-width-md);
+          }
+        }
+        @media (min-width: 1024px) {
+          div[style*="--image-width"] {
+            --image-width-base: var(--image-width-lg);
+            --image-height-base: var(--image-height-lg);
+            --image-margin-base: var(--image-margin-lg);
+            --border-width-base: var(--border-width-lg);
+          }
+        }
+      `}</style>
     </div>
   );
 }
