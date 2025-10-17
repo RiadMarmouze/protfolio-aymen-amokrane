@@ -29,14 +29,14 @@ export default function SocialLinks() {
           target="_blank"
           rel="noopener noreferrer me"
           aria-label={label}
-          className="flex p-3 md:p-4 justify-center items-center aspect-square rounded-full border border-white/30 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 transition-transform duration-200"
+          className="flex p-2 md:p-3 justify-center items-center aspect-square rounded-full border border-white/30 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 transition-transform duration-200"
         >
           <Image
             src={src}
             alt={label}
             width={24}
             height={24}
-            className="w-6 h-6"
+            className="w-5 h-5"
           />
         </Link>
       ))}
